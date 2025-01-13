@@ -1,0 +1,430 @@
+---
+title: "Contagio Social en Elección Escolar: Un Análisis Empírico con Datos Administrativos"
+author: "Roberto Cantillan"
+date: "2024-01-07"
+format:
+  html:
+    theme:
+      - cosmo
+      - custom.scss
+    css: custom.scss
+    toc: true
+    toc-depth: 3
+    toc-title: "En este ejercicio"
+    toc-location: right
+execute:
+  warning: false
+  message: false
+bibliography: paper_school_choice.bib
+
+image: "featured.jpg"
+title-block-banner: featured.jpg
+title-block-banner-color: "rgba(0, 0, 0, 0.8)"
+title-block-style: default
+---
+
+## 1. Introducción
+
+El presente documento propone una extensión metodológica para el análisis de contagio social en elección escolar, basándose en dos contribuciones fundamentales:
+
+1. El trabajo de [@centola_complex_2007; @centola_how_2018; @aiyappa_emergence_2024] sobre mecanismos de contagio simple y complejo.
+2. Los datos administrativos disponibles del sistema de postulación escolar chileno.
+
+La propuesta busca enriquecer el análisis original mediante:
+a) La consideración de múltiples vecinos cercanos
+b) La evaluación de patrones de contagio simple versus complejo
+c) El análisis de heterogeneidad en los mecanismos de difusión
+
+## 2. Marco Teórico
+
+### 2.1 Contagio Social: Simple vs Complejo
+
+Según Aiyappa et al. (2024), podemos distinguir dos tipos fundamentales de contagio social:
+
+**Contagio Simple:**
+- La probabilidad de adopción aumenta linealmente con la exposición
+- Cada exposición adicional tiene un efecto marginal decreciente
+- No requiere refuerzo social significativo
+
+**Contagio Complejo:**
+- Exhibe efectos de umbral
+- Requiere exposición múltiple o refuerzo social
+- Muestra una curva sigmoidea de adopción
+
+### 2.2 Aplicación a Elección Escolar
+
+La elección escolar como comportamiento social podría exhibir características de ambos tipos de contagio:
+
+**Características de Contagio Simple:**
+- Transmisión de información básica sobre escuelas
+- Influencia basada en proximidad geográfica
+- Decisiones rutinarias o de bajo costo
+
+**Características de Contagio Complejo:**
+- Decisiones que implican alto costo o riesgo
+- Necesidad de validación social múltiple
+- Cambios en patrones establecidos de elección
+
+## 3. Datos y Metodología
+
+### 3.1 Estructura de Datos Base
+
+```{r setup}
+library(tidyverse)
+library(sf)
+library(spdep)
+library(lme4)
+
+# Estructura de datos enriquecida
+create_extended_dataset <- function(n_students = 1000, k_neighbors = 5) {
+  # Datos base de estudiantes
+  students <- data.frame(
+    student_id = 1:n_students,
+    cohort = sample(2020:2022, n_students, replace = TRUE),
+    student_ses = factor(sample(c("low", "medium-high"), 
+                               n_students, replace = TRUE)),
+    school_level = factor(sample(c("pre-school", "primary", "secondary"),
+                                n_students, replace = TRUE)),
+    census_tract = paste0("CT", sample(1:100, n_students, replace = TRUE)),
+    
+    # Coordenadas espaciales (Santiago)
+    lat = rnorm(n_students, -33.45, 0.1),
+    lon = rnorm(n_students, -70.67, 0.1),
+    
+    # Elecciones escolares
+    top_choice_school = paste0("SCH", sample(1:100, n_students, replace = TRUE)),
+    enrolled_school = paste0("SCH", sample(1:100, n_students, replace = TRUE))
+  )
+  
+  # Identificar k vecinos más cercanos
+  coords <- students %>%
+    select(lon, lat) %>%
+    as.matrix()
+  
+  dist_matrix <- dist(coords) %>%
+    as.matrix()
+  
+  # Para cada estudiante, encontrar sus k vecinos más cercanos
+  neighbor_data <- lapply(1:n_students, function(i) {
+    # Ordenar distancias y seleccionar k vecinos más cercanos
+    neighbors <- order(dist_matrix[i,])[2:(k_neighbors + 1)]
+    
+    # Crear datos para cada vecino
+    data.frame(
+      student_id = i,
+      neighbor_rank = 1:k_neighbors,
+      neighbor_id = neighbors,
+      distance = dist_matrix[i, neighbors]
+    )
+  }) %>%
+    bind_rows()
+  
+  return(list(
+    students = students,
+    neighbors = neighbor_data
+  ))
+}
+```
+
+### 3.2 Variables Dependientes: Dos Enfoques Complementarios
+
+En el análisis de contagio social en elección escolar con múltiples vecinos, podemos considerar dos enfoques para las variables dependientes. Cada enfoque nos permite examinar diferentes aspectos del fenómeno y probar distintas hipótesis sobre los mecanismos de influencia social.
+
+#### 3.2.1 Enfoque 1: Extensión de Variables Originales
+
+El primer enfoque mantiene la estructura conceptual de las variables originales pero las adapta para considerar múltiples vecinos:
+
+```{r}
+# Función para calcular variables dependientes extendidas
+calculate_extended_original_vars <- function(data, k_neighbors) {
+  data %>%
+    group_by(student_id) %>%
+    summarise(
+      # 1. TopChoice modificada
+      top_choice_new = sum(student_top_choice == neighbor_top_choice) / k_neighbors,
+      
+      # 2. TopEnroll modificada
+      top_enroll_new = sum(student_top_choice == neighbor_enrolled) / k_neighbors,
+      
+      # 3. TopChoiceEnroll modificada
+      top_choice_enroll_new = sum(student_top_choice == neighbor_enrolled & 
+                                 neighbor_enrolled == neighbor_top_choice) / k_neighbors
+    )
+}
+```
+
+**Hipótesis asociadas al Enfoque 1:**
+
+1. H1a: La probabilidad de compartir elecciones escolares disminuye con el número de vecinos considerados (efecto de dilución)
+   - Para estudiantes de bajo SES, este efecto será menor debido a mayor dependencia de redes locales
+   - Para estudiantes de alto SES, este efecto será mayor debido a redes más diversas
+
+2. H1b: La influencia de vecinos más distantes será menor (decay effect)
+   - Este efecto será más pronunciado en niveles escolares más bajos (preescolar)
+   - El efecto será menor en áreas con alta densidad de opciones escolares
+
+3. H1c: La proporción de vecinos que comparten una elección exhibirá patrones distintos según el nivel socioeconómico
+   - Estudiantes de bajo SES mostrarán mayor clustering de elecciones
+   - Estudiantes de alto SES mostrarán mayor dispersión
+
+#### 3.2.2 Enfoque 2: Nuevas Dimensiones de Influencia Social
+
+El segundo enfoque introduce nuevas variables que capturan dimensiones adicionales de la influencia social:
+
+```{r}
+# Función para calcular nuevas variables dependientes
+calculate_new_dependent_vars <- function(data) {
+  data %>%
+    group_by(student_id) %>%
+    summarise(
+      # 1. Intensidad de influencia ponderada por distancia
+      weighted_influence = weighted.mean(
+        student_top_choice == neighbor_top_choice,
+        w = 1/neighbor_distances
+      ),
+      
+      # 2. Efecto umbral
+      threshold_effect = as.numeric(
+        sum(student_top_choice == neighbor_top_choice) >= threshold_k
+      ),
+      
+      # 3. Influencia del grupo mayoritario
+      majority_influence = as.numeric(
+        student_top_choice == Mode(neighbor_top_choices)
+      ),
+      
+      # 4. Índice de conformidad local
+      local_conformity = sum(student_top_choice == neighbor_top_choice * 
+                           exp(-neighbor_distances/mean(neighbor_distances)))
+    )
+}
+
+# Función auxiliar para análisis de patrones
+analyze_influence_patterns <- function(data) {
+  # Análisis por nivel socioeconómico
+  ses_patterns <- data %>%
+    group_by(student_ses) %>%
+    summarise(
+      mean_weighted_influence = mean(weighted_influence),
+      prop_threshold = mean(threshold_effect),
+      prop_majority = mean(majority_influence),
+      mean_conformity = mean(local_conformity)
+    )
+  
+  # Análisis por nivel escolar
+  level_patterns <- data %>%
+    group_by(school_level) %>%
+    summarise(
+      mean_weighted_influence = mean(weighted_influence),
+      prop_threshold = mean(threshold_effect),
+      prop_majority = mean(majority_influence),
+      mean_conformity = mean(local_conformity)
+    )
+  
+  return(list(
+    ses_patterns = ses_patterns,
+    level_patterns = level_patterns
+  ))
+}
+```
+
+**Hipótesis asociadas al Enfoque 2:**
+
+1. H2a: Efectos de Umbral (Threshold Effects)
+   - Las decisiones escolares mostrarán patrones de contagio complejo
+   - Se requerirá un número mínimo de vecinos compartiendo una elección para influir en la decisión
+   - Este umbral será mayor para familias de alto SES
+
+2. H2b: Conformidad Local
+   - La conformidad con el grupo mayoritario será más fuerte en áreas socioeconómicamente homogéneas
+   - Este efecto será más pronunciado en niveles escolares más bajos
+   - La conformidad disminuirá con la distancia geográfica
+
+3. H2c: Intensidad de Influencia
+   - La influencia ponderada por distancia mostrará patrones de decay no lineales
+   - Este efecto interactuará con el nivel socioeconómico
+   - La intensidad de influencia será mayor en áreas con menos opciones escolares
+
+#### 3.2.3 Integración de Enfoques
+
+Para maximizar el valor analítico, proponemos mantener ambos conjuntos de variables:
+
+```{r}
+# Función para análisis integrado
+integrated_analysis <- function(data) {
+  # Calcular todas las variables dependientes
+  full_data <- data %>%
+    left_join(
+      calculate_extended_original_vars(data, k_neighbors),
+      by = "student_id"
+    ) %>%
+    left_join(
+      calculate_new_dependent_vars(data),
+      by = "student_id"
+    )
+  
+  # Análisis de correlación entre medidas
+  correlation_analysis <- cor(
+    full_data %>%
+      select(starts_with(c("top_", "weighted_", "threshold_", "majority_")))
+  )
+  
+  # Análisis de consistencia
+  consistency_analysis <- full_data %>%
+    group_by(student_ses, school_level) %>%
+    summarise(
+      original_metric = mean(top_choice_new),
+      new_metric = mean(weighted_influence),
+      consistency = cor(top_choice_new, weighted_influence)
+    )
+  
+  return(list(
+    correlations = correlation_analysis,
+    consistency = consistency_analysis
+  ))
+}
+```
+
+Esta integración nos permite:
+1. Mantener comparabilidad con análisis previos
+2. Explorar nuevas dimensiones de influencia social
+3. Validar hallazgos a través de múltiples medidas
+4. Identificar patrones robustos de contagio social
+
+
+### 3.3 Análisis de Patrones de Contagio
+
+```{r}
+# Función para analizar tipo de contagio
+analyze_contagion_pattern <- function(data) {
+  
+  # 1. Preparar datos para análisis
+  adoption_data <- data %>%
+    group_by(student_id) %>%
+    mutate(
+      # Número de vecinos que comparten elección
+      n_shared = cumsum(top_choice),
+      # Proporción de vecinos que comparten elección
+      prop_shared = n_shared/n(),
+      # Distancia promedio a vecinos que comparten elección
+      avg_distance = mean(distance[top_choice == 1], na.rm = TRUE)
+    )
+  
+  # 2. Modelos de contagio
+  
+  # Modelo simple (lineal)
+  simple_model <- glm(
+    top_choice ~ n_shared,
+    family = binomial(),
+    data = adoption_data
+  )
+  
+  # Modelo complejo (cuadrático)
+  complex_model <- glm(
+    top_choice ~ poly(n_shared, 2),
+    family = binomial(),
+    data = adoption_data
+  )
+  
+  # 3. Comparación de modelos
+  model_comparison <- anova(simple_model, complex_model, test = "LRT")
+  
+  # 4. Análisis por subgrupos
+  ses_patterns <- adoption_data %>%
+    group_by(student_ses) %>%
+    group_modify(~broom::tidy(
+      glm(top_choice ~ poly(n_shared, 2), 
+          family = binomial(), 
+          data = .x)
+    ))
+  
+  return(list(
+    models = list(
+      simple = simple_model,
+      complex = complex_model
+    ),
+    comparison = model_comparison,
+    ses_patterns = ses_patterns
+  ))
+}
+```
+
+### 3.4 Análisis de Heterogeneidad
+
+```{r}
+# Función para análisis de heterogeneidad
+analyze_heterogeneity <- function(data) {
+  
+  # 1. Por nivel socioeconómico
+  ses_analysis <- data %>%
+    group_by(student_ses) %>%
+    group_modify(~analyze_contagion_pattern(.x))
+  
+  # 2. Por nivel escolar
+  level_analysis <- data %>%
+    group_by(school_level) %>%
+    group_modify(~analyze_contagion_pattern(.x))
+  
+  # 3. Por densidad de red local
+  network_density <- data %>%
+    group_by(census_tract) %>%
+    summarise(
+      n_students = n(),
+      avg_distance = mean(distance),
+      density = n_students/avg_distance
+    )
+  
+  density_analysis <- data %>%
+    left_join(network_density) %>%
+    mutate(density_group = ntile(density, 3)) %>%
+    group_by(density_group) %>%
+    group_modify(~analyze_contagion_pattern(.x))
+  
+  return(list(
+    ses = ses_analysis,
+    level = level_analysis,
+    density = density_analysis
+  ))
+}
+```
+
+## 4. Resultados Esperados
+
+### 4.1 Patrones de Contagio
+
+El análisis permitirá identificar:
+
+1. El mecanismo predominante de contagio social
+2. Variaciones por nivel socioeconómico
+3. Diferencias según nivel escolar
+4. Efectos de la estructura de red local
+
+### 4.2 Interpretación
+
+La identificación de patrones de contagio tiene implicaciones importantes:
+
+1. Para política pública:
+   - Diseño de intervenciones informativas
+   - Focalización de recursos
+   - Estrategias de reducción de segregación
+
+2. Para teoría de elección escolar:
+   - Comprensión de mecanismos de influencia social
+   - Rol de redes sociales en decisiones educativas
+   - Interacción entre factores individuales y contextuales
+
+## 5. Limitaciones
+
+### 5.1 Datos
+
+1. Endogeneidad en selección residencial
+2. No observamos interacciones directas
+3. Limitaciones en medición de distancia social
+
+### 5.2 Metodológicas
+
+1. Dificultad en identificación causal
+2. Posibles efectos de reflexión
+3. Heterogeneidad no observada
+
+## Referencias
