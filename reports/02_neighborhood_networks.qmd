@@ -1,0 +1,75 @@
+---
+title: "Constructing Egocentric Neighborhood Networks:"
+subtitle: "Methodological Framework"
+format:
+  html:
+    theme:
+      - cosmo
+      - custom.scss
+    css: custom.scss
+    toc: true
+    toc-depth: 3
+    toc-title: "En este ejercicio"
+    toc-location: right
+execute:
+  warning: false
+  message: false
+bibliography: paper_school_choice.bib
+abstract: | 
+
+  This paper presents an innovative methodological framework that integrates recent advances in neighborhood effects research with social contagion theory to analyze how spatial and social processes interact in urban environments. We build upon the concept of "bespoke neighborhoods" - spatially-defined social networks centered on individual locations - to examine how different types of social influence operate across various spatial scales and urban contexts. Our framework advances beyond traditional approaches by incorporating both simple and complex contagion mechanisms while accounting for the multi-scalar nature of neighborhood effects. Drawing on high-resolution geographic data and detailed social connection patterns, we develop a comprehensive methodology that enables researchers to examine the nuanced ways in which spatial proximity and social influence intersect. This framework represents a significant methodological advance that allows for more precise measurement of both neighborhood effects and social contagion mechanisms, with important implications for urban research and policy.
+
+image: "featured.jpg"
+title-block-banner: featured.jpg
+title-block-banner-color: "rgba(0, 0, 0, 0.8)"
+title-block-style: default
+---
+
+
+# Introduction
+
+Contemporary urban research increasingly recognizes that neighborhood effects operate through multiple simultaneous mechanisms at various spatial scales. Traditional approaches, which rely on administrative boundaries and assume uniform social influence within defined areas, fail to capture the complex ways in which spatial and social processes interact in urban environments. Recent work by @petrovic_where_2022 has challenged this conventional wisdom by introducing the concept of "bespoke neighborhoods" - flexible, individual-centered spatial units that better reflect the actual scale at which neighborhood effects operate. Simultaneously, research on urban mobility patterns by @wang_urban_2018 has demonstrated that while residents of different socioeconomic groups may travel similar distances, they experience fundamentally different types of social exposure through their movement patterns.
+
+Our framework builds upon these insights by integrating them with social contagion theory, particularly the distinction between simple and complex contagion mechanisms identified by @centola_complex_2007. This integration allows us to examine how different types of social influence operate across various spatial scales and social contexts. The result is a methodological approach that moves beyond static, administrative definitions of neighborhoods to capture the dynamic interplay between spatial proximity and social influence.
+
+The innovation in our approach lies in the systematic combination of three key theoretical advances: the concept of bespoke neighborhoods, the understanding of differential mobility patterns, and the distinction between simple and complex social contagion mechanisms. This integration enables a more nuanced and accurate analysis of how social processes operate in urban spaces, with important implications for both research and policy.
+
+# Theoretical Foundation
+
+## The Evolution of Neighborhood Effects Research
+
+Research on neighborhood effects has traditionally been constrained by reliance on administrative boundaries and static definitions of social context. However, as @petrovic_where_2022 demonstrate, there is no theoretical reason to assume that neighborhood effects operate at a constant single spatial scale across different urban settings or time periods. Their introduction of bespoke neighborhoods represents a crucial methodological advance, allowing researchers to examine how spatial context effects vary when altering the spatial scale of analysis.
+
+This insight aligns with empirical findings from mobility research. @wang_urban_2018 show that while residents of disadvantaged neighborhoods travel similar distances and visit similar numbers of neighborhoods as those from more advantaged areas, the composition of the neighborhoods they visit varies significantly. This finding suggests that meaningful social networks cannot be captured by arbitrary administrative units but must instead be constructed based on actual patterns of movement and interaction.
+
+## Integrating Social Contagion Theory
+
+Our framework extends these insights by incorporating social contagion theory, particularly the distinction between simple and complex contagion mechanisms. Simple contagion processes, characterized by linear adoption probabilities and decreasing marginal effects of additional exposure, operate differently from complex contagion processes, which require multiple source validation and exhibit threshold effects. Understanding how these different mechanisms operate across various spatial scales is crucial for accurately modeling neighborhood effects.
+
+# Methodological Framework
+
+## Constructing Bespoke Networks
+
+Our approach centers on constructing spatially-defined social networks that reflect both physical proximity and social connection patterns. Unlike traditional approaches that rely on administrative boundaries, these networks are centered on individual locations and can vary in scale to capture different types of social processes. This construction allows us to examine how simple and complex contagion mechanisms operate at different spatial scales and across different urban contexts.
+
+The methodology involves several key innovations:
+
+First, we use high-resolution geographic data to create multi-scale spatial buffers around individual locations. These buffers are not fixed but vary based on urban structure and movement patterns, reflecting the insight from @petrovic_where_2022 that the relevant scale of neighborhood effects varies across urban contexts.
+
+Second, we incorporate social connection data to weight these spatial relationships, acknowledging that physical proximity alone does not determine social influence. This integration allows us to examine how different types of social ties operate across space and how they interact with spatial proximity to facilitate or inhibit social contagion processes.
+
+## Analyzing Social Contagion Mechanisms
+
+Our framework enables the systematic analysis of both simple and complex contagion processes within these bespoke networks. For simple contagion processes, we examine how influence decays with distance and how it varies across different types of social ties. For complex contagion processes, we analyze threshold effects and the role of multiple source validation in different spatial contexts.
+
+[Detailed methodological equations and specifications would follow here]
+
+# Empirical Validation and Applications
+
+## Validation Approach
+
+The framework can be validated through multiple complementary approaches. First, we can examine how well our bespoke networks predict observed patterns of social influence compared to traditional administrative boundaries. Second, we can test whether the distinction between simple and complex contagion processes helps explain variations in influence patterns across different types of behaviors and different urban contexts.
+
+
+
+
