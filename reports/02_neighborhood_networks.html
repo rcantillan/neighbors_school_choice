@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 /* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
@@ -96,7 +130,7 @@ background: featured.jpg;
   <div>
     <div class="abstract">
       <div class="block-title">Abstract</div>
-      <p>This paper presents an innovative methodological framework that integrates recent advances in neighborhood effects research with social contagion theory to analyze how spatial and social processes interact in urban environments. We build upon the concept of “bespoke neighborhoods” - spatially-defined social networks centered on individual locations - to examine how different types of social influence operate across various spatial scales and urban contexts. Our framework advances beyond traditional approaches by incorporating both simple and complex contagion mechanisms while accounting for the multi-scalar nature of neighborhood effects. Drawing on high-resolution geographic data and detailed social connection patterns, we develop a comprehensive methodology that enables researchers to examine the nuanced ways in which spatial proximity and social influence intersect. This framework represents a significant methodological advance that allows for more precise measurement of both neighborhood effects and social contagion mechanisms, with important implications for urban research and policy.</p>
+      <p>This document presents an innovative methodological framework that integrates recent advances in neighborhood effects research with social contagion theory to analyze how spatial and social processes interact in urban environments. We build upon the concept of “bespoke neighborhoods” - spatially-defined social networks centered on individual locations - to examine how different types of social influence operate across various spatial scales and urban contexts. Our framework advances beyond traditional approaches by incorporating both simple and complex contagion mechanisms while accounting for the multi-scalar nature of neighborhood effects. Drawing on high-resolution geographic data and detailed social connection patterns, we develop a comprehensive methodology that enables researchers to examine the nuanced ways in which spatial proximity and social influence intersect. This framework represents a significant methodological advance that allows for more precise measurement of both neighborhood effects and social contagion mechanisms, with important implications for urban research and policy.</p>
     </div>
   </div>
   
@@ -121,6 +155,40 @@ background: featured.jpg;
   <ul class="collapse">
   <li><a href="#validation-approach" id="toc-validation-approach" class="nav-link" data-scroll-target="#validation-approach">Validation Approach</a></li>
   </ul></li>
+  <li><a href="#code-process" id="toc-code-process" class="nav-link" data-scroll-target="#code-process">Code process</a>
+  <ul class="collapse">
+  <li><a href="#conceptos-fundamentales" id="toc-conceptos-fundamentales" class="nav-link" data-scroll-target="#conceptos-fundamentales">Conceptos Fundamentales</a>
+  <ul class="collapse">
+  <li><a href="#redes-egocéntricas" id="toc-redes-egocéntricas" class="nav-link" data-scroll-target="#redes-egocéntricas">Redes Egocéntricas</a></li>
+  <li><a href="#distancia-adaptativa" id="toc-distancia-adaptativa" class="nav-link" data-scroll-target="#distancia-adaptativa">Distancia Adaptativa</a></li>
+  <li><a href="#función-de-decay-decaimiento" id="toc-función-de-decay-decaimiento" class="nav-link" data-scroll-target="#función-de-decay-decaimiento">Función de Decay (Decaimiento)</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#configuración-inicial-y-librerías" id="toc-configuración-inicial-y-librerías" class="nav-link" data-scroll-target="#configuración-inicial-y-librerías">Configuración Inicial y Librerías</a></li>
+  <li><a href="#sistema-de-logging" id="toc-sistema-de-logging" class="nav-link" data-scroll-target="#sistema-de-logging">Sistema de Logging</a></li>
+  <li><a href="#sistema-de-gestión-de-densidad-poblacional" id="toc-sistema-de-gestión-de-densidad-poblacional" class="nav-link" data-scroll-target="#sistema-de-gestión-de-densidad-poblacional">Sistema de Gestión de Densidad Poblacional</a>
+  <ul class="collapse">
+  <li><a href="#creación-de-datos-de-densidad" id="toc-creación-de-datos-de-densidad" class="nav-link" data-scroll-target="#creación-de-datos-de-densidad">Creación de Datos de Densidad</a></li>
+  <li><a href="#asignación-de-categorías-de-densidad" id="toc-asignación-de-categorías-de-densidad" class="nav-link" data-scroll-target="#asignación-de-categorías-de-densidad">Asignación de Categorías de Densidad</a></li>
+  <li><a href="#determinación-de-radio-por-categoría" id="toc-determinación-de-radio-por-categoría" class="nav-link" data-scroll-target="#determinación-de-radio-por-categoría">Determinación de Radio por Categoría</a></li>
+  </ul></li>
+  <li><a href="#función-principal-creación-de-díadas" id="toc-función-principal-creación-de-díadas" class="nav-link" data-scroll-target="#función-principal-creación-de-díadas">Función Principal: Creación de Díadas</a>
+  <ul class="collapse">
+  <li><a href="#preparación-de-datos" id="toc-preparación-de-datos" class="nav-link" data-scroll-target="#preparación-de-datos">Preparación de Datos</a></li>
+  <li><a href="#procesamiento-por-lotes" id="toc-procesamiento-por-lotes" class="nav-link" data-scroll-target="#procesamiento-por-lotes">Procesamiento por Lotes</a></li>
+  <li><a href="#optimización-espacial" id="toc-optimización-espacial" class="nav-link" data-scroll-target="#optimización-espacial">Optimización Espacial</a></li>
+  <li><a href="#cálculo-de-peso-de-conexiones" id="toc-cálculo-de-peso-de-conexiones" class="nav-link" data-scroll-target="#cálculo-de-peso-de-conexiones">Cálculo de Peso de Conexiones</a></li>
+  </ul></li>
+  <li><a href="#procesamiento-histórico" id="toc-procesamiento-histórico" class="nav-link" data-scroll-target="#procesamiento-histórico">Procesamiento Histórico</a></li>
+  <li><a href="#función-principal-de-ejecución" id="toc-función-principal-de-ejecución" class="nav-link" data-scroll-target="#función-principal-de-ejecución">Función Principal de Ejecución</a></li>
+  <li><a href="#ejemplo-de-uso" id="toc-ejemplo-de-uso" class="nav-link" data-scroll-target="#ejemplo-de-uso">Ejemplo de Uso</a></li>
+  <li><a href="#consideraciones-técnicas" id="toc-consideraciones-técnicas" class="nav-link" data-scroll-target="#consideraciones-técnicas">Consideraciones Técnicas</a>
+  <ul class="collapse">
+  <li><a href="#optimizaciones-implementadas" id="toc-optimizaciones-implementadas" class="nav-link" data-scroll-target="#optimizaciones-implementadas">Optimizaciones Implementadas</a></li>
+  <li><a href="#consideraciones-de-uso" id="toc-consideraciones-de-uso" class="nav-link" data-scroll-target="#consideraciones-de-uso">Consideraciones de Uso</a></li>
+  </ul></li>
+  <li><a href="#referencias-y-recursos-adicionales" id="toc-referencias-y-recursos-adicionales" class="nav-link" data-scroll-target="#referencias-y-recursos-adicionales">Referencias y Recursos Adicionales</a></li>
+  <li><a href="#apéndice-glosario-de-términos" id="toc-apéndice-glosario-de-términos" class="nav-link" data-scroll-target="#apéndice-glosario-de-términos">Apéndice: Glosario de Términos</a></li>
   </ul>
 </nav>
 </div>
@@ -168,8 +236,283 @@ background: featured.jpg;
 <section id="validation-approach" class="level2">
 <h2 class="anchored" data-anchor-id="validation-approach">Validation Approach</h2>
 <p>The framework can be validated through multiple complementary approaches. First, we can examine how well our bespoke networks predict observed patterns of social influence compared to traditional administrative boundaries. Second, we can test whether the distinction between simple and complex contagion processes helps explain variations in influence patterns across different types of behaviors and different urban contexts.</p>
-
 </section>
+</section>
+<section id="code-process" class="level1">
+<h1>Code process</h1>
+<section id="conceptos-fundamentales" class="level2">
+<h2 class="anchored" data-anchor-id="conceptos-fundamentales">Conceptos Fundamentales</h2>
+<p>Antes de adentrarnos en el código, es importante entender algunos conceptos clave:</p>
+<section id="redes-egocéntricas" class="level3">
+<h3 class="anchored" data-anchor-id="redes-egocéntricas">Redes Egocéntricas</h3>
+<p>Una red egocéntrica es una estructura que se centra en un individuo (ego) y sus conexiones con otros individuos (alters). En este caso, estamos trabajando con redes egocéntricas espaciales, donde las conexiones se basan en la proximidad geográfica.</p>
+</section>
+<section id="distancia-adaptativa" class="level3">
+<h3 class="anchored" data-anchor-id="distancia-adaptativa">Distancia Adaptativa</h3>
+<p>El sistema utiliza un enfoque adaptativo para determinar las conexiones, lo que significa que la distancia máxima permitida para una conexión varía según la densidad poblacional de la zona. Por ejemplo, en áreas densamente pobladas, la distancia máxima es menor que en áreas rurales.</p>
+</section>
+<section id="función-de-decay-decaimiento" class="level3">
+<h3 class="anchored" data-anchor-id="función-de-decay-decaimiento">Función de Decay (Decaimiento)</h3>
+<p>El sistema implementa funciones de decay que modelan cómo la intensidad de la conexión disminuye con la distancia. Esto refleja la realidad de que las interacciones sociales tienden a ser más débiles a medida que aumenta la distancia física.</p>
+</section>
+</section>
+</section>
+<section id="configuración-inicial-y-librerías" class="level1">
+<h1>Configuración Inicial y Librerías</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">memory.limit</span>(<span class="at">size =</span> <span class="dv">8000</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nngeo)      </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Esta sección establece el entorno de trabajo. Veamos en detalle cada componente:</p>
+<ul>
+<li><p><code>memory.limit(size = 8000)</code>: Ajusta el límite de memoria disponible para R. Esto es crucial cuando trabajamos con grandes conjuntos de datos espaciales.</p></li>
+<li><p>Las librerías cargadas tienen propósitos específicos:</p>
+<ul>
+<li><code>tidyverse</code>: Conjunto de paquetes para manipulación de datos</li>
+<li><code>sf</code>: Manejo de datos espaciales vectoriales</li>
+<li><code>nngeo</code>: Operaciones espaciales optimizadas, especialmente para búsqueda de vecinos cercanos</li>
+<li><code>readr</code>: Lectura eficiente de archivos</li>
+<li><code>stringr</code>: Manipulación de cadenas de texto</li>
+<li><code>purrr</code>: Programación funcional</li>
+</ul></li>
+</ul>
+</section>
+<section id="sistema-de-logging" class="level1">
+<h1>Sistema de Logging</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>log_message <span class="ot">&lt;-</span> <span class="cf">function</span>(message, <span class="at">error =</span> <span class="cn">FALSE</span>) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  timestamp <span class="ot">&lt;-</span> <span class="fu">format</span>(<span class="fu">Sys.time</span>(), <span class="st">"%Y-%m-%d %H:%M:%S"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  formatted_msg <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">"[%s] %s"</span>, timestamp, message)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (error) {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(formatted_msg)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(formatted_msg, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>La función <code>log_message</code> es una herramienta esencial para el seguimiento y debugging del proceso. Sus características principales son:</p>
+<ol type="1">
+<li><strong>Timestamping</strong>: Cada mensaje incluye una marca temporal precisa</li>
+<li><strong>Flexibilidad</strong>: Puede manejar tanto mensajes normales como errores</li>
+<li><strong>Formato Consistente</strong>: Mantiene un formato uniforme para todos los mensajes</li>
+</ol>
+<p>Esta función es particularmente útil para: - Seguimiento del progreso en procesos largos - Identificación de cuellos de botella - Debugging de errores - Documentación del flujo de ejecución</p>
+</section>
+<section id="sistema-de-gestión-de-densidad-poblacional" class="level1">
+<h1>Sistema de Gestión de Densidad Poblacional</h1>
+<section id="creación-de-datos-de-densidad" class="level2">
+<h2 class="anchored" data-anchor-id="creación-de-datos-de-densidad">Creación de Datos de Densidad</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>create_density_data <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>La función <code>create_density_data</code> es fundamental para el sistema. Su propósito es:</p>
+<ol type="1">
+<li><strong>Establecer Referencias</strong>: Crea una tabla base con información demográfica de comunas conocidas</li>
+<li><strong>Calcular Métricas</strong>:
+<ul>
+<li>Densidad poblacional (habitantes/km²)</li>
+<li>Normalización de densidad (0-1)</li>
+</ul></li>
+<li><strong>Categorización</strong>: Clasifica las comunas en cinco niveles de densidad:
+<ul>
+<li>alta</li>
+<li>media-alta</li>
+<li>media</li>
+<li>media-baja</li>
+<li>baja</li>
+</ul></li>
+</ol>
+<p>Esta categorización es crucial porque determina el radio de búsqueda que se utilizará para cada zona.</p>
+</section>
+<section id="asignación-de-categorías-de-densidad" class="level2">
+<h2 class="anchored" data-anchor-id="asignación-de-categorías-de-densidad">Asignación de Categorías de Densidad</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>assign_density_category <span class="ot">&lt;-</span> <span class="cf">function</span>(comuna_nombre, density_data) {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Esta función implementa un sistema de dos niveles para categorizar comunas:</p>
+<ol type="1">
+<li><strong>Búsqueda Directa</strong>: Primero intenta encontrar la comuna en los datos de referencia</li>
+<li><strong>Sistema de Reglas</strong>: Si la comuna no está en los datos de referencia, aplica un conjunto de reglas heurísticas basadas en patrones de nombres</li>
+</ol>
+<p>La función es robusta porque: - Maneja casos no encontrados - Utiliza reglas basadas en conocimiento del dominio - Proporciona una categoría por defecto (“media”) para casos no contemplados</p>
+</section>
+<section id="determinación-de-radio-por-categoría" class="level2">
+<h2 class="anchored" data-anchor-id="determinación-de-radio-por-categoría">Determinación de Radio por Categoría</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>get_radius_by_category <span class="ot">&lt;-</span> <span class="cf">function</span>(density_category) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Esta función implementa la lógica central del sistema adaptativo. Asigna diferentes radios de búsqueda según la categoría de densidad:</p>
+<ul>
+<li>alta: 300 metros</li>
+<li>media-alta: 500 metros</li>
+<li>media: 800 metros</li>
+<li>media-baja: 1500 metros</li>
+<li>baja: 2000 metros</li>
+</ul>
+<p>La lógica detrás de estos valores es que: - En áreas densas, las interacciones relevantes ocurren en distancias más cortas - En áreas menos densas, se necesitan radios más grandes para capturar interacciones significativas</p>
+</section>
+</section>
+<section id="función-principal-creación-de-díadas" class="level1">
+<h1>Función Principal: Creación de Díadas</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>create_adaptive_dyads <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    student_data,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">reference_data =</span> <span class="cn">NULL</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">global_max_distance =</span> <span class="dv">2000</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... resto de parámetros ...</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Esta es la función central del sistema. Su complejidad se justifica por la necesidad de manejar eficientemente grandes volúmenes de datos espaciales. Veamos sus componentes principales:</p>
+<section id="preparación-de-datos" class="level2">
+<h2 class="anchored" data-anchor-id="preparación-de-datos">Preparación de Datos</h2>
+<ol type="1">
+<li><strong>Normalización de Entrada</strong>: Estandariza los nombres de columnas y formatos</li>
+<li><strong>Conversión Espacial</strong>: Transforma datos tabulares en objetos espaciales</li>
+<li><strong>Proyección</strong>: Convierte coordenadas a un sistema de referencia proyectado</li>
+</ol>
+</section>
+<section id="procesamiento-por-lotes" class="level2">
+<h2 class="anchored" data-anchor-id="procesamiento-por-lotes">Procesamiento por Lotes</h2>
+<p>El sistema procesa los datos en lotes (batches) para: - Reducir el uso de memoria - Permitir el procesamiento de grandes conjuntos de datos - Facilitar el paralelismo potencial</p>
+</section>
+<section id="optimización-espacial" class="level2">
+<h2 class="anchored" data-anchor-id="optimización-espacial">Optimización Espacial</h2>
+<p>La función implementa varias optimizaciones: 1. <strong>Bounding Box</strong>: Reduce el área de búsqueda 2. <strong>st_nn</strong>: Búsqueda eficiente de vecinos cercanos 3. <strong>Filtrado Adaptativo</strong>: Aplica diferentes radios según la densidad</p>
+</section>
+<section id="cálculo-de-peso-de-conexiones" class="level2">
+<h2 class="anchored" data-anchor-id="cálculo-de-peso-de-conexiones">Cálculo de Peso de Conexiones</h2>
+<p>Implementa diferentes modelos de decay: - Lineal: Decrece linealmente con la distancia - Exponencial: Decrece exponencialmente - None: Sin decay (peso constante)</p>
+</section>
+</section>
+<section id="procesamiento-histórico" class="level1">
+<h1>Procesamiento Histórico</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>create_historical_dyads_adaptive <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    current_year,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    all_samples,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... resto de parámetros ...</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Esta función extiende el análisis a través del tiempo. Sus características principales son:</p>
+<ol type="1">
+<li><strong>Procesamiento Temporal</strong>: Analiza conexiones entre diferentes años</li>
+<li><strong>Memoria Eficiente</strong>: Procesa cada año por separado</li>
+<li><strong>Consistencia</strong>: Mantiene la lógica adaptativa a través del tiempo</li>
+</ol>
+</section>
+<section id="función-principal-de-ejecución" class="level1">
+<h1>Función Principal de Ejecución</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>run_dyad_creation_adaptive <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    samples,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    target_year,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ... resto de parámetros ...</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Esta es la función de más alto nivel que:</p>
+<ol type="1">
+<li><strong>Coordina el Proceso</strong>: Maneja la ejecución general</li>
+<li><strong>Valida Datos</strong>: Verifica la existencia de datos necesarios</li>
+<li><strong>Genera Resúmenes</strong>: Produce estadísticas descriptivas</li>
+<li><strong>Documenta Metadata</strong>: Registra parámetros y tiempo de procesamiento</li>
+</ol>
+</section>
+<section id="ejemplo-de-uso" class="level1">
+<h1>Ejemplo de Uso</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Lectura de datos</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sample_2019 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/sample_2019.csv"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">cohort =</span> <span class="dv">2019</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ... resto del código de ejemplo ...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="consideraciones-técnicas" class="level1">
+<h1>Consideraciones Técnicas</h1>
+<section id="optimizaciones-implementadas" class="level2">
+<h2 class="anchored" data-anchor-id="optimizaciones-implementadas">Optimizaciones Implementadas</h2>
+<p>El código implementa varias optimizaciones clave:</p>
+<ol type="1">
+<li><strong>Uso de st_distance</strong>:
+<ul>
+<li>Reemplaza geosphere::distGeo</li>
+<li>Requiere datos en CRS proyectado</li>
+<li>Más rápido para grandes conjuntos de datos</li>
+</ul></li>
+<li><strong>Implementación de st_nn</strong>:
+<ul>
+<li>Más eficiente que st_join con st_is_within_distance</li>
+<li>Mejor rendimiento para grandes volúmenes</li>
+<li>Permite filtrado posterior por distancia</li>
+</ul></li>
+<li><strong>Procesamiento por Lotes</strong>:
+<ul>
+<li>Reduce uso de memoria</li>
+<li>Permite procesar grandes conjuntos de datos</li>
+<li>Opción de recorte espacial para optimización</li>
+</ul></li>
+</ol>
+</section>
+<section id="consideraciones-de-uso" class="level2">
+<h2 class="anchored" data-anchor-id="consideraciones-de-uso">Consideraciones de Uso</h2>
+<p>Para obtener el mejor rendimiento:</p>
+<ol type="1">
+<li><strong>Memoria</strong>:
+<ul>
+<li>Ajustar <code>batch_size</code> según recursos disponibles</li>
+<li>Monitorear uso de memoria</li>
+<li>Usar <code>gc()</code> cuando sea necesario</li>
+</ul></li>
+<li><strong>Sistema de Coordenadas</strong>:
+<ul>
+<li>Usar CRS apropiado para la región</li>
+<li>Considerar distorsiones en proyecciones</li>
+<li>Validar transformaciones</li>
+</ul></li>
+<li><strong>Parámetros de Decay</strong>:
+<ul>
+<li>Ajustar según necesidades del análisis</li>
+<li>Validar efectos en resultados</li>
+<li>Documentar decisiones</li>
+</ul></li>
+</ol>
+</section>
+</section>
+<section id="referencias-y-recursos-adicionales" class="level1">
+<h1>Referencias y Recursos Adicionales</h1>
+<ul>
+<li>Documentación de sf: <a href="https://r-spatial.github.io/sf/">https://r-spatial.github.io/sf/</a></li>
+<li>Documentación de nngeo: <a href="https://github.com/michaeldorman/nngeo">https://github.com/michaeldorman/nngeo</a></li>
+<li>R Spatial: <a href="https://rspatial.org/">https://rspatial.org/</a></li>
+</ul>
+</section>
+<section id="apéndice-glosario-de-términos" class="level1">
+<h1>Apéndice: Glosario de Términos</h1>
+<ul>
+<li><strong>CRS</strong>: Sistema de Referencia de Coordenadas</li>
+<li><strong>Ego</strong>: Punto central en una red egocéntrica</li>
+<li><strong>Alter</strong>: Puntos conectados al ego</li>
+<li><strong>Decay</strong>: Disminución de la intensidad de conexión con la distancia</li>
+<li><strong>Batch</strong>: Lote de datos para procesamiento</li>
+<li><strong>Bounding Box</strong>: Rectángulo que delimita un área geográfica</li>
+</ul>
+
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">

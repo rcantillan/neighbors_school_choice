@@ -17,7 +17,7 @@ execute:
 bibliography: paper_school_choice.bib
 abstract: | 
 
-  This paper presents an innovative methodological framework that integrates recent advances in neighborhood effects research with social contagion theory to analyze how spatial and social processes interact in urban environments. We build upon the concept of "bespoke neighborhoods" - spatially-defined social networks centered on individual locations - to examine how different types of social influence operate across various spatial scales and urban contexts. Our framework advances beyond traditional approaches by incorporating both simple and complex contagion mechanisms while accounting for the multi-scalar nature of neighborhood effects. Drawing on high-resolution geographic data and detailed social connection patterns, we develop a comprehensive methodology that enables researchers to examine the nuanced ways in which spatial proximity and social influence intersect. This framework represents a significant methodological advance that allows for more precise measurement of both neighborhood effects and social contagion mechanisms, with important implications for urban research and policy.
+  This document presents an innovative methodological framework that integrates recent advances in neighborhood effects research with social contagion theory to analyze how spatial and social processes interact in urban environments. We build upon the concept of "bespoke neighborhoods" - spatially-defined social networks centered on individual locations - to examine how different types of social influence operate across various spatial scales and urban contexts. Our framework advances beyond traditional approaches by incorporating both simple and complex contagion mechanisms while accounting for the multi-scalar nature of neighborhood effects. Drawing on high-resolution geographic data and detailed social connection patterns, we develop a comprehensive methodology that enables researchers to examine the nuanced ways in which spatial proximity and social influence intersect. This framework represents a significant methodological advance that allows for more precise measurement of both neighborhood effects and social contagion mechanisms, with important implications for urban research and policy.
 
 image: "featured.jpg"
 title-block-banner: featured.jpg
@@ -70,6 +70,297 @@ Our framework enables the systematic analysis of both simple and complex contagi
 
 The framework can be validated through multiple complementary approaches. First, we can examine how well our bespoke networks predict observed patterns of social influence compared to traditional administrative boundaries. Second, we can test whether the distinction between simple and complex contagion processes helps explain variations in influence patterns across different types of behaviors and different urban contexts.
 
+# Code process 
+## Conceptos Fundamentales
 
+Antes de adentrarnos en el código, es importante entender algunos conceptos clave:
+
+### Redes Egocéntricas
+Una red egocéntrica es una estructura que se centra en un individuo (ego) y sus conexiones con otros individuos (alters). En este caso, estamos trabajando con redes egocéntricas espaciales, donde las conexiones se basan en la proximidad geográfica.
+
+### Distancia Adaptativa
+El sistema utiliza un enfoque adaptativo para determinar las conexiones, lo que significa que la distancia máxima permitida para una conexión varía según la densidad poblacional de la zona. Por ejemplo, en áreas densamente pobladas, la distancia máxima es menor que en áreas rurales.
+
+### Función de Decay (Decaimiento)
+El sistema implementa funciones de decay que modelan cómo la intensidad de la conexión disminuye con la distancia. Esto refleja la realidad de que las interacciones sociales tienden a ser más débiles a medida que aumenta la distancia física.
+
+# Configuración Inicial y Librerías
+
+```{r}
+#| label: setup-libraries
+#| eval: false
+
+memory.limit(size = 8000)
+
+library(tidyverse)
+library(sf)
+library(nngeo)      
+library(readr)
+library(stringr)
+library(purrr)
+```
+
+Esta sección establece el entorno de trabajo. Veamos en detalle cada componente:
+
+- `memory.limit(size = 8000)`: Ajusta el límite de memoria disponible para R. Esto es crucial cuando trabajamos con grandes conjuntos de datos espaciales.
+
+- Las librerías cargadas tienen propósitos específicos:
+  - `tidyverse`: Conjunto de paquetes para manipulación de datos
+  - `sf`: Manejo de datos espaciales vectoriales
+  - `nngeo`: Operaciones espaciales optimizadas, especialmente para búsqueda de vecinos cercanos
+  - `readr`: Lectura eficiente de archivos
+  - `stringr`: Manipulación de cadenas de texto
+  - `purrr`: Programación funcional
+
+# Sistema de Logging
+
+```{r}
+#| label: logging-function
+#| eval: false
+
+log_message <- function(message, error = FALSE) {
+  timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  formatted_msg <- sprintf("[%s] %s", timestamp, message)
+  if (error) {
+    warning(formatted_msg)
+  } else {
+    cat(formatted_msg, "\n")
+  }
+}
+```
+
+La función `log_message` es una herramienta esencial para el seguimiento y debugging del proceso. Sus características principales son:
+
+1. **Timestamping**: Cada mensaje incluye una marca temporal precisa
+2. **Flexibilidad**: Puede manejar tanto mensajes normales como errores
+3. **Formato Consistente**: Mantiene un formato uniforme para todos los mensajes
+
+Esta función es particularmente útil para:
+- Seguimiento del progreso en procesos largos
+- Identificación de cuellos de botella
+- Debugging de errores
+- Documentación del flujo de ejecución
+
+# Sistema de Gestión de Densidad Poblacional
+
+## Creación de Datos de Densidad
+
+```{r}
+#| label: density-data
+#| eval: false
+
+create_density_data <- function() {
+  # ... código de la función ...
+}
+```
+
+La función `create_density_data` es fundamental para el sistema. Su propósito es:
+
+1. **Establecer Referencias**: Crea una tabla base con información demográfica de comunas conocidas
+2. **Calcular Métricas**: 
+   - Densidad poblacional (habitantes/km²)
+   - Normalización de densidad (0-1)
+3. **Categorización**: Clasifica las comunas en cinco niveles de densidad:
+   - alta
+   - media-alta
+   - media
+   - media-baja
+   - baja
+
+Esta categorización es crucial porque determina el radio de búsqueda que se utilizará para cada zona.
+
+## Asignación de Categorías de Densidad
+
+```{r}
+#| label: density-category
+#| eval: false
+
+assign_density_category <- function(comuna_nombre, density_data) {
+  # ... código de la función ...
+}
+```
+
+Esta función implementa un sistema de dos niveles para categorizar comunas:
+
+1. **Búsqueda Directa**: Primero intenta encontrar la comuna en los datos de referencia
+2. **Sistema de Reglas**: Si la comuna no está en los datos de referencia, aplica un conjunto de reglas heurísticas basadas en patrones de nombres
+
+La función es robusta porque:
+- Maneja casos no encontrados
+- Utiliza reglas basadas en conocimiento del dominio
+- Proporciona una categoría por defecto ("media") para casos no contemplados
+
+## Determinación de Radio por Categoría
+
+```{r}
+#| label: radius-determination
+#| eval: false
+
+get_radius_by_category <- function(density_category) {
+  # ... código de la función ...
+}
+```
+
+Esta función implementa la lógica central del sistema adaptativo. Asigna diferentes radios de búsqueda según la categoría de densidad:
+
+- alta: 300 metros
+- media-alta: 500 metros
+- media: 800 metros
+- media-baja: 1500 metros
+- baja: 2000 metros
+
+La lógica detrás de estos valores es que:
+- En áreas densas, las interacciones relevantes ocurren en distancias más cortas
+- En áreas menos densas, se necesitan radios más grandes para capturar interacciones significativas
+
+# Función Principal: Creación de Díadas
+
+```{r}
+#| label: create-dyads
+#| eval: false
+
+create_adaptive_dyads <- function(
+    student_data,
+    reference_data = NULL,
+    global_max_distance = 2000,
+    # ... resto de parámetros ...
+) {
+  # ... código de la función ...
+}
+```
+
+Esta es la función central del sistema. Su complejidad se justifica por la necesidad de manejar eficientemente grandes volúmenes de datos espaciales. Veamos sus componentes principales:
+
+## Preparación de Datos
+1. **Normalización de Entrada**: Estandariza los nombres de columnas y formatos
+2. **Conversión Espacial**: Transforma datos tabulares en objetos espaciales
+3. **Proyección**: Convierte coordenadas a un sistema de referencia proyectado
+
+## Procesamiento por Lotes
+El sistema procesa los datos en lotes (batches) para:
+- Reducir el uso de memoria
+- Permitir el procesamiento de grandes conjuntos de datos
+- Facilitar el paralelismo potencial
+
+## Optimización Espacial
+La función implementa varias optimizaciones:
+1. **Bounding Box**: Reduce el área de búsqueda
+2. **st_nn**: Búsqueda eficiente de vecinos cercanos
+3. **Filtrado Adaptativo**: Aplica diferentes radios según la densidad
+
+## Cálculo de Peso de Conexiones
+Implementa diferentes modelos de decay:
+- Lineal: Decrece linealmente con la distancia
+- Exponencial: Decrece exponencialmente
+- None: Sin decay (peso constante)
+
+# Procesamiento Histórico
+
+```{r}
+#| label: historical-processing
+#| eval: false
+
+create_historical_dyads_adaptive <- function(
+    current_year,
+    all_samples,
+    # ... resto de parámetros ...
+) {
+  # ... código de la función ...
+}
+```
+
+Esta función extiende el análisis a través del tiempo. Sus características principales son:
+
+1. **Procesamiento Temporal**: Analiza conexiones entre diferentes años
+2. **Memoria Eficiente**: Procesa cada año por separado
+3. **Consistencia**: Mantiene la lógica adaptativa a través del tiempo
+
+# Función Principal de Ejecución
+
+```{r}
+#| label: main-execution
+#| eval: false
+
+run_dyad_creation_adaptive <- function(
+    samples,
+    target_year,
+    # ... resto de parámetros ...
+) {
+  # ... código de la función ...
+}
+```
+
+Esta es la función de más alto nivel que:
+
+1. **Coordina el Proceso**: Maneja la ejecución general
+2. **Valida Datos**: Verifica la existencia de datos necesarios
+3. **Genera Resúmenes**: Produce estadísticas descriptivas
+4. **Documenta Metadata**: Registra parámetros y tiempo de procesamiento
+
+# Ejemplo de Uso
+
+```{r}
+#| label: usage-example
+#| eval: false
+
+# Lectura de datos
+sample_2019 <- read_csv("data/sample_2019.csv") %>% mutate(cohort = 2019)
+# ... resto del código de ejemplo ...
+```
+
+# Consideraciones Técnicas
+
+## Optimizaciones Implementadas
+
+El código implementa varias optimizaciones clave:
+
+1. **Uso de st_distance**: 
+   - Reemplaza geosphere::distGeo
+   - Requiere datos en CRS proyectado
+   - Más rápido para grandes conjuntos de datos
+
+2. **Implementación de st_nn**:
+   - Más eficiente que st_join con st_is_within_distance
+   - Mejor rendimiento para grandes volúmenes
+   - Permite filtrado posterior por distancia
+
+3. **Procesamiento por Lotes**:
+   - Reduce uso de memoria
+   - Permite procesar grandes conjuntos de datos
+   - Opción de recorte espacial para optimización
+
+## Consideraciones de Uso
+
+Para obtener el mejor rendimiento:
+
+1. **Memoria**: 
+   - Ajustar `batch_size` según recursos disponibles
+   - Monitorear uso de memoria
+   - Usar `gc()` cuando sea necesario
+
+2. **Sistema de Coordenadas**:
+   - Usar CRS apropiado para la región
+   - Considerar distorsiones en proyecciones
+   - Validar transformaciones
+
+3. **Parámetros de Decay**:
+   - Ajustar según necesidades del análisis
+   - Validar efectos en resultados
+   - Documentar decisiones
+
+# Referencias y Recursos Adicionales
+
+- Documentación de sf: [https://r-spatial.github.io/sf/](https://r-spatial.github.io/sf/)
+- Documentación de nngeo: [https://github.com/michaeldorman/nngeo](https://github.com/michaeldorman/nngeo)
+- R Spatial: [https://rspatial.org/](https://rspatial.org/)
+
+# Apéndice: Glosario de Términos
+
+- **CRS**: Sistema de Referencia de Coordenadas
+- **Ego**: Punto central en una red egocéntrica
+- **Alter**: Puntos conectados al ego
+- **Decay**: Disminución de la intensidad de conexión con la distancia
+- **Batch**: Lote de datos para procesamiento
+- **Bounding Box**: Rectángulo que delimita un área geográfica
 
 
