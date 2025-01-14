@@ -446,6 +446,28 @@ run_dyad_creation_adaptive <- function(
  print(results_2022_exp$summary)
  
  
+
+## Descriptivos
  
+ # 1) Calculamos el tamaño de la red de cada ego
+ resumen_por_ego <- d %>%
+   group_by(ego_id) %>%
+   summarise(
+     network_size = n_distinct(alter_id),  # Número de alters únicos
+     .groups = "drop"
+   )
  
+ # 2) Obtenemos descriptivos básicos del tamaño de red
+ stats_network_size <- resumen_por_ego %>%
+   summarise(
+     mean_size   = mean(network_size, na.rm = TRUE),
+     sd_size     = sd(network_size, na.rm = TRUE),
+     median_size = median(network_size, na.rm = TRUE),
+     min_size    = min(network_size, na.rm = TRUE),
+     max_size    = max(network_size, na.rm = TRUE)
+   )
+ 
+ stats_network_size
+
+
  
