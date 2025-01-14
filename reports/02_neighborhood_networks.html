@@ -348,6 +348,13 @@ background: featured.jpg;
 </section>
 <section id="determinación-de-radio-por-categoría" class="level2">
 <h2 class="anchored" data-anchor-id="determinación-de-radio-por-categoría">Determinación de Radio por Categoría</h2>
+<p>Antes se llama a <code>st_nn</code> con un valor fijo de k (e.g.&nbsp;500) y un maxdist (e.g.&nbsp;2000). Eso quiere decir que, por cada punto (EGO), se buscan hasta 500 vecinos cercanos (ALTERs) que estén a máximo 2000 metros, sin distinción de densidad.</p>
+<p>Una vez obtenidos esos posibles vecinos, el código aplica un filtrado por ego_radius, que sí depende de la densidad:</p>
+<ul>
+<li>El ego_radius se define en get_radius_by_category(density_category).</li>
+<li>Por ejemplo, si la comuna es “alta densidad” le asignamos un radio de 300 m; si es “baja densidad” serán 2000 m, y así sucesivamente.</li>
+<li>Luego se descartan todos los vecinos cuya distance supere este ego_radius adaptativo.</li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>get_radius_by_category <span class="ot">&lt;-</span> <span class="cf">function</span>(density_category) {</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... código de la función ...</span></span>

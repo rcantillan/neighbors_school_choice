@@ -192,6 +192,14 @@ La función es robusta porque:
 
 ## Determinación de Radio por Categoría
 
+Antes se llama a `st_nn` con un valor fijo de k (e.g. 500) y un maxdist (e.g. 2000). Eso quiere decir que, por cada punto (EGO), se buscan hasta 500 vecinos cercanos (ALTERs) que estén a máximo 2000 metros, sin distinción de densidad.
+
+Una vez obtenidos esos posibles vecinos, el código aplica un filtrado por ego_radius, que sí depende de la densidad:
+
+- El ego_radius se define en get_radius_by_category(density_category).
+- Por ejemplo, si la comuna es “alta densidad” le asignamos un radio de 300 m; si es “baja densidad” serán 2000 m, y así sucesivamente. 
+- Luego se descartan todos los vecinos cuya distance supere este ego_radius adaptativo.
+
 ```{r}
 #| label: radius-determination
 #| eval: false
