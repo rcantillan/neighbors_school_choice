@@ -1,0 +1,89 @@
+---
+title: "Mecanismos de Contagio Complejo en Espacios Residenciales"
+format:
+  html:
+    theme:
+      - cosmo
+      - custom.scss
+    css: custom.scss
+    toc: true
+    toc-depth: 3
+    toc-title: "En este ejercicio"
+    toc-location: right
+execute:
+  warning: false
+  message: false
+bibliography: paper_school_choice.bib
+abstract: | 
+
+  Este documento examina los mecanismos de difusión de comportamientos en contextos donde los individuos comparten espacios residenciales pero no mantienen vínculos sociales directos. Proponemos tres mecanismos principales observables: legitimidad espacial-temporal, exposición observacional basada en densidad poblacional, y homofilia sociodemográfica. A través de datos georreferenciados y variables sociodemográficas, analizamos cómo estos mecanismos operan a diferentes escalas espaciales y en distintos contextos urbanos, contribuyendo a la comprensión de cómo los comportamientos se difunden en ausencia de interacciones sociales directas.
+
+image: "featured.jpg"
+title-block-banner: featured.jpg
+title-block-banner-color: "rgba(0, 0, 0, 0.8)"
+title-block-style: default
+---
+
+## Introducción
+
+La difusión de comportamientos en entornos sociales ha sido tradicionalmente estudiada bajo el supuesto de la existencia de vínculos sociales directos entre los actores [@granovetter_strength_1973, @centola_how_2018]. Sin embargo, en contextos residenciales contemporáneos, las personas frecuentemente comparten espacios geográficos sin mantener interacciones sociales significativas. Este fenómeno plantea una pregunta fundamental: ¿cómo se propagan los comportamientos cuando no existen vínculos sociales directos?
+
+La investigación reciente sobre contagios complejos [@centola_change_2021, @petrovic_where_2022] ha demostrado que ciertos comportamientos requieren refuerzo social múltiple para su adopción, mientras que desarrollos teóricos recientes [@aiyappa_emergence_2024] sugieren que estos patrones de contagio pueden emerger de la interacción entre factores individuales y contextuales. Nuestro estudio se enfoca en los aspectos observables y medibles de estos procesos en contextos residenciales.
+
+## Marco Teórico
+
+### Del Contagio Social al Contagio Espacial
+
+La teoría del contagio complejo establece que, a diferencia de los contagios simples como la información, ciertos comportamientos requieren refuerzo múltiple para su adopción [@centola_complex_2007]. En contextos residenciales, proponemos tres mecanismos observables que pueden proporcionar este refuerzo sin necesidad de interacción directa:
+
+1. **Legitimidad Espacial-Temporal**: La persistencia de comportamientos en un área geográfica específica puede crear una percepción de legitimidad social [@sampson_great_2013]. Este efecto es medible a través del seguimiento longitudinal de patrones comportamentales en áreas específicas.
+
+2. **Exposición Observacional Estructurada**: La proximidad física permite la observación repetida de comportamientos, cuya efectividad varía según la densidad poblacional y la estructura urbana [@petrovic_where_2022]. Este mecanismo es observable a través de variables de densidad poblacional y características del entorno construido.
+
+3. **Homofilia Sociodemográfica**: La similitud en características observables puede facilitar la adopción de comportamientos incluso sin contacto directo [@mcpherson_birds_2001], medible a través de indicadores sociodemográficos.
+
+## Hipótesis
+
+1. **Hipótesis sobre Legitimidad Espacial-Temporal Adaptativa**
+
+"La probabilidad de adopción de comportamientos será mayor en áreas donde existe una alta proporción de vecinos que exhiben el comportamiento de manera persistente en el tiempo, con efectos diferenciales según la densidad poblacional. En zonas de alta densidad (>150 hab/ha), los efectos serán más fuertes a distancias más cortas (200-300m), mientras que en zonas de baja densidad (<50 hab/ha), los efectos se manifestarán a distancias mayores (1-2km)."
+
+2. **Hipótesis sobre el Decaimiento de la Influencia Espacial**
+
+"La influencia del entorno residencial sobre la adopción de comportamientos seguirá una función de decaimiento con la distancia, con un punto crítico que varía según el tipo de región urbana. Este punto - donde el efecto contextual se vuelve no significativo - será más cercano en áreas de alta densidad (aproximadamente 2km) y más lejano en áreas de baja densidad (hasta 3km)."
+
+3. **Hipótesis sobre Homofilia Sociodemográfica Espacial**
+
+"La efectividad del contagio espacial aumentará con el grado de similitud sociodemográfica entre residentes cercanos, observable particularmente en escalas espaciales pequeñas (<500m) donde la exposición es más intensa y frecuente. Este efecto será medible a través de indicadores de segregación residencial y homogeneidad sociodemográfica."
+
+## Tabla Resumen de las Hipótesis y sus Mecanismos
+
+| Hipótesis | Mecanismo Principal | Variables Observables | Indicadores Empíricos |
+|-----------|---------------------|----------------------|---------------------|
+| Legitimidad Espacial-Temporal | Persistencia de comportamientos en el espacio-tiempo | - Proporción de comportamientos similares por radio espacial<br>- Densidad poblacional | - Tasas de adopción por radio<br>- Persistencia temporal del comportamiento |
+| Decaimiento Espacial | Exposición observacional estructurada | - Distancia física entre residencias<br>- Densidad poblacional<br>- Tipo de región urbana | - Gradiente de adopción por distancia<br>- Puntos de inflexión en efectos contextuales |
+| Homofilia Sociodemográfica | Similitud social observable | - Características sociodemográficas<br>- Índices de segregación | - Correlación entre similitud y adopción<br>- Índices de homogeneidad espacial |
+
+## Implicaciones Metodológicas
+
+El estudio del contagio espacial sin vínculos sociales directos requiere una aproximación metodológica que considere:
+
+1. El análisis multitemporal de comportamientos en el espacio
+2. La medición precisa de distancias y densidades poblacionales
+3. La caracterización detallada de perfiles sociodemográficos
+4. El uso de métodos estadísticos espaciales apropiados para diferentes escalas
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

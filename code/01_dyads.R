@@ -440,7 +440,7 @@ run_dyad_creation_adaptive <- function(
    decay_type          = "exponential",
    alpha               = 0.002,
    density_data        = density_data,
-   crs_projected       = 32719,      # EPSG para tu zona
+   crs_projected       = 32719,      # EPSG para nuestra zona
    use_bounding_box    = TRUE
  )
  print(results_2022_exp$summary)
