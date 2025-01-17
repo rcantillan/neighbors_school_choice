@@ -61,7 +61,7 @@ install.packages(c("dplyr", "ggplot2", "readr", "sf"))
 
 - En la carpeta reports/ encontrarás archivos HTML con resultados y visualizaciones que ilustran:
   - [Neighborhood networks construction](https://rcantillan.github.io/neighbors_school_choice/reports/02_neighborhood_networks.html)
-  - [Networks Descriptives](https://rcantillan.github.io/neighbors_school_choice/reports/03_networks_descriptives.html)
+  - [Theoretical framework](https://rcantillan.github.io/neighbors_school_choice/reports/03_complex_contagion.html)
   
   
 ## Licencia
