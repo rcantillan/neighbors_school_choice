@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Sistema de Redes barriales Egocéntricas</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="04_adaptive_system_files/libs/clipboard/clipboard.min.js"></script>
+<script src="04_adaptive_system_files/libs/quarto-html/quarto.js"></script>
+<script src="04_adaptive_system_files/libs/quarto-html/popper.min.js"></script>
+<script src="04_adaptive_system_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="04_adaptive_system_files/libs/quarto-html/anchor.min.js"></script>
+<link href="04_adaptive_system_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="04_adaptive_system_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="04_adaptive_system_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="04_adaptive_system_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="04_adaptive_system_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: rgba(0, 0, 0, 0.8);
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: rgba(0, 0, 0, 0.8);
+background: featured.jpg;
+      }
+</style>
+
+
+<link rel="stylesheet" href="custom.scss">
+</head>
+
+<body>
+
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Sistema de Redes barriales Egocéntricas</h1>
+            <p class="subtitle lead">Radio adaptativo</p>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+    
+      
+    </div>
+    
+  <div>
+    <div class="abstract">
+      <div class="block-title">Abstract</div>
+      <p>Este documento examina en detalle la implementación técnica de un sistema para la construcción de redes egocéntricas que incorpora mecanismos de ajuste dinámico del radio y funciones de decay. Se analiza cómo estos mecanismos permiten modelar de manera más precisa la probabilidad de encuentros casuales en espacios residenciales, considerando tanto la densidad poblacional como la distancia física entre individuos. Se presentan ejemplos prácticos y se discuten las implicaciones de los diferentes tipos de decay en la estructura de las redes resultantes.</p>
+    </div>
+  </div>
+  
+  </header><div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En este ejercicio</h2>
+   
+  <ul>
+  <li><a href="#fundamentos-del-sistema" id="toc-fundamentos-del-sistema" class="nav-link active" data-scroll-target="#fundamentos-del-sistema">1. Fundamentos del Sistema</a>
+  <ul class="collapse">
+  <li><a href="#el-concepto-de-radio-adaptativo" id="toc-el-concepto-de-radio-adaptativo" class="nav-link" data-scroll-target="#el-concepto-de-radio-adaptativo">1.1 El Concepto de Radio Adaptativo</a></li>
+  </ul></li>
+  <li><a href="#el-sistema-de-ajuste-de-radio-en-detalle" id="toc-el-sistema-de-ajuste-de-radio-en-detalle" class="nav-link" data-scroll-target="#el-sistema-de-ajuste-de-radio-en-detalle">2. El Sistema de Ajuste de Radio en Detalle</a>
+  <ul class="collapse">
+  <li><a href="#primer-nivel-ajuste-por-densidad" id="toc-primer-nivel-ajuste-por-densidad" class="nav-link" data-scroll-target="#primer-nivel-ajuste-por-densidad">2.1 Primer Nivel: Ajuste por Densidad</a></li>
+  <li><a href="#segundo-nivel-ajuste-dinámico" id="toc-segundo-nivel-ajuste-dinámico" class="nav-link" data-scroll-target="#segundo-nivel-ajuste-dinámico">2.2 Segundo Nivel: Ajuste Dinámico</a></li>
+  </ul></li>
+  <li><a href="#el-sistema-de-decay-en-profundidad" id="toc-el-sistema-de-decay-en-profundidad" class="nav-link" data-scroll-target="#el-sistema-de-decay-en-profundidad">3. El Sistema de Decay en Profundidad</a>
+  <ul class="collapse">
+  <li><a href="#implementación-del-decay" id="toc-implementación-del-decay" class="nav-link" data-scroll-target="#implementación-del-decay">3.1 Implementación del Decay</a></li>
+  <li><a href="#impacto-en-el-análisis" id="toc-impacto-en-el-análisis" class="nav-link" data-scroll-target="#impacto-en-el-análisis">3.2 Impacto en el Análisis</a></li>
+  </ul></li>
+  <li><a href="#ejemplo-práctico-integrado" id="toc-ejemplo-práctico-integrado" class="nav-link" data-scroll-target="#ejemplo-práctico-integrado">4. Ejemplo Práctico Integrado</a></li>
+  <li><a href="#aspectos-técnicos-importantes" id="toc-aspectos-técnicos-importantes" class="nav-link" data-scroll-target="#aspectos-técnicos-importantes">5. Aspectos Técnicos Importantes</a>
+  <ul class="collapse">
+  <li><a href="#optimización-espacial" id="toc-optimización-espacial" class="nav-link" data-scroll-target="#optimización-espacial">5.1 Optimización Espacial</a></li>
+  <li><a href="#procesamiento-por-lotes" id="toc-procesamiento-por-lotes" class="nav-link" data-scroll-target="#procesamiento-por-lotes">5.2 Procesamiento por Lotes</a></li>
+  </ul></li>
+  <li><a href="#resultados-y-análisis" id="toc-resultados-y-análisis" class="nav-link" data-scroll-target="#resultados-y-análisis">6. Resultados y Análisis</a></li>
+  <li><a href="#conclusiones" id="toc-conclusiones" class="nav-link" data-scroll-target="#conclusiones">7. Conclusiones</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="fundamentos-del-sistema" class="level2">
+<h2 class="anchored" data-anchor-id="fundamentos-del-sistema">1. Fundamentos del Sistema</h2>
+<p>El sistema está diseñado para crear redes egocéntricas que representen posibles interacciones entre estudiantes en espacios residenciales. Para entender cómo funciona, imaginemos una ciudad desde arriba: cada estudiante es un punto en el mapa, y queremos determinar con qué otros estudiantes podría interactuar basándonos en la proximidad física.</p>
+<section id="el-concepto-de-radio-adaptativo" class="level3">
+<h3 class="anchored" data-anchor-id="el-concepto-de-radio-adaptativo">1.1 El Concepto de Radio Adaptativo</h3>
+<p>El radio adaptativo es como un círculo alrededor de cada estudiante que determina su “vecindario de interacción”. La innovación clave es que este círculo no es de tamaño fijo, sino que se ajusta según dos factores:</p>
+<ol type="1">
+<li>La densidad poblacional del área</li>
+<li>El número real de vecinos encontrados</li>
+</ol>
+<p>Es similar a cómo las personas naturalmente ajustan su “espacio de interacción” - en áreas densamente pobladas, tendemos a considerar un área más pequeña como nuestro vecindario, mientras que en áreas rurales, nuestro concepto de vecindario suele ser más amplio.</p>
+</section>
+</section>
+<section id="el-sistema-de-ajuste-de-radio-en-detalle" class="level2">
+<h2 class="anchored" data-anchor-id="el-sistema-de-ajuste-de-radio-en-detalle">2. El Sistema de Ajuste de Radio en Detalle</h2>
+<p>El código implementa un sistema de ajuste en dos niveles:</p>
+<section id="primer-nivel-ajuste-por-densidad" class="level3">
+<h3 class="anchored" data-anchor-id="primer-nivel-ajuste-por-densidad">2.1 Primer Nivel: Ajuste por Densidad</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>student_data <span class="sc">%&gt;%</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">adaptive_radius =</span> min_radius <span class="sc">+</span> (max_radius <span class="sc">-</span> min_radius) <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> density_norm),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">adaptive_radius =</span> <span class="fu">pmin</span>(max_radius, <span class="fu">pmax</span>(min_radius, adaptive_radius))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Este primer ajuste es como establecer una “expectativa inicial” del tamaño del vecindario. Por ejemplo:</p>
+<ul>
+<li>En un área muy densa (density_norm ≈ 1): el radio se acerca a 300m</li>
+<li>En un área poco densa (density_norm ≈ 0): el radio se acerca a 2000m</li>
+</ul>
+</section>
+<section id="segundo-nivel-ajuste-dinámico" class="level3">
+<h3 class="anchored" data-anchor-id="segundo-nivel-ajuste-dinámico">2.2 Segundo Nivel: Ajuste Dinámico</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>adjusted_radius <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  n_vecinos <span class="sc">&lt;</span> <span class="dv">10</span> <span class="sc">~</span> global_max_distance,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  n_vecinos <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="fu">nth</span>(dyads<span class="sc">$</span>distance, <span class="dv">50</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> dyads<span class="sc">$</span>ego_radius_initial[<span class="dv">1</span>]</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Este segundo ajuste es crucial porque responde a la realidad encontrada. Imagínemos tres escenarios:</p>
+<ol type="1">
+<li><p><strong>Área Aislada</strong> (menos de 10 vecinos):</p>
+<ul>
+<li>El sistema expande el radio al máximo (2000m)</li>
+<li>Es como decir: “Necesitamos buscar más lejos para encontrar suficientes conexiones potenciales”</li>
+</ul></li>
+<li><p><strong>Área Muy Densa</strong> (más de 50 vecinos):</p>
+<ul>
+<li>El sistema reduce el radio para incluir solo los 50 más cercanos</li>
+<li>Es como decir: “Hay demasiadas conexiones potenciales, nos centramos en las más próximas”</li>
+</ul></li>
+<li><p><strong>Área Normal</strong>:</p>
+<ul>
+<li>Mantiene el radio calculado por densidad</li>
+<li>Representa un equilibrio adecuado</li>
+</ul></li>
+</ol>
+</section>
+</section>
+<section id="el-sistema-de-decay-en-profundidad" class="level2">
+<h2 class="anchored" data-anchor-id="el-sistema-de-decay-en-profundidad">3. El Sistema de Decay en Profundidad</h2>
+<p>El decay modela cómo la probabilidad de interacción disminuye con la distancia. Es como la diferencia entre un vecino que vive al lado y otro que vive a varias cuadras.</p>
+<section id="implementación-del-decay" class="level3">
+<h3 class="anchored" data-anchor-id="implementación-del-decay">3.1 Implementación del Decay</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>weight <span class="ot">=</span> <span class="fu">case_when</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  decay_type <span class="sc">==</span> <span class="st">"linear"</span> <span class="sc">~</span> <span class="fu">pmax</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">-</span> distance<span class="sc">/</span>ego_radius_final),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  decay_type <span class="sc">==</span> <span class="st">"exponential"</span> <span class="sc">~</span> <span class="fu">exp</span>(<span class="sc">-</span>alpha <span class="sc">*</span> distance),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Cada tipo de decay representa un modelo diferente de cómo la distancia afecta las interacciones:</p>
+<ol type="1">
+<li><p><strong>Sin Decay (none)</strong>:</p>
+<ul>
+<li>Peso siempre = 1</li>
+<li>Como decir: “Si estás dentro del radio, cuentas por igual”</li>
+<li>Ejemplo práctico:
+<ul>
+<li>Vecino a 100m: peso = 1</li>
+<li>Vecino a 800m: peso = 1</li>
+</ul></li>
+</ul></li>
+<li><p><strong>Decay Lineal</strong>:</p>
+<ul>
+<li>Disminución uniforme con la distancia</li>
+<li>Como decir: “La probabilidad de interacción disminuye constantemente”</li>
+<li>Ejemplo con radio = 1000m:
+<ul>
+<li>Vecino a 100m: peso = 0.9</li>
+<li>Vecino a 500m: peso = 0.5</li>
+<li>Vecino a 800m: peso = 0.2</li>
+</ul></li>
+</ul></li>
+<li><p><strong>Decay Exponencial</strong>:</p>
+<ul>
+<li>Caída rápida inicial que se suaviza</li>
+<li>Como decir: “Las interacciones cercanas son mucho más probables”</li>
+<li>Ejemplo con α = 0.001:
+<ul>
+<li>Vecino a 100m: peso = 0.90</li>
+<li>Vecino a 500m: peso = 0.61</li>
+<li>Vecino a 800m: peso = 0.45</li>
+</ul></li>
+</ul></li>
+</ol>
+</section>
+<section id="impacto-en-el-análisis" class="level3">
+<h3 class="anchored" data-anchor-id="impacto-en-el-análisis">3.2 Impacto en el Análisis</h3>
+<p>El tipo de decay elegido afecta directamente:</p>
+<ol type="1">
+<li>El peso de cada conexión en la red</li>
+<li>La importancia relativa de las interacciones según la distancia</li>
+<li>La estructura efectiva de la red resultante</li>
+</ol>
+</section>
+</section>
+<section id="ejemplo-práctico-integrado" class="level2">
+<h2 class="anchored" data-anchor-id="ejemplo-práctico-integrado">4. Ejemplo Práctico Integrado</h2>
+<p>Veamos cómo funciona todo junto para un estudiante específico:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ejemplo para un estudiante en un área de densidad media</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ejemplo_estudiante <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">ego_id =</span> <span class="st">"estudiante1"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vecinos =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">distancia =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">600</span>, <span class="dv">900</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">radio_inicial =</span> <span class="dv">1000</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_none =</span> <span class="dv">1</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_lineal =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.6</span>, <span class="fl">0.9</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_exp =</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.001</span> <span class="sc">*</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">600</span>, <span class="dv">900</span>))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Este ejemplo muestra cómo los diferentes tipos de decay afectan las conexiones a diferentes distancias para un mismo estudiante.</p>
+</section>
+<section id="aspectos-técnicos-importantes" class="level2">
+<h2 class="anchored" data-anchor-id="aspectos-técnicos-importantes">5. Aspectos Técnicos Importantes</h2>
+<section id="optimización-espacial" class="level3">
+<h3 class="anchored" data-anchor-id="optimización-espacial">5.1 Optimización Espacial</h3>
+<p>El código usa bounding boxes para optimizar la búsqueda de vecinos:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (use_bounding_box) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  batch_buffer <span class="ot">&lt;-</span> <span class="fu">st_buffer</span>(<span class="fu">st_union</span>(batch_sf), global_max_distance)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  ref_crop <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(reference_sf, batch_buffer)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Esto es como crear una “zona de búsqueda” eficiente alrededor de cada grupo de estudiantes.</p>
+</section>
+<section id="procesamiento-por-lotes" class="level3">
+<h3 class="anchored" data-anchor-id="procesamiento-por-lotes">5.2 Procesamiento por Lotes</h3>
+<p>El sistema procesa los datos en lotes para manejar eficientemente grandes volúmenes de información:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>total_students <span class="ot">&lt;-</span> <span class="fu">nrow</span>(student_sf)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n_batches <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(total_students <span class="sc">/</span> batch_size)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="resultados-y-análisis" class="level2">
+<h2 class="anchored" data-anchor-id="resultados-y-análisis">6. Resultados y Análisis</h2>
+<p>Para cada estudiante, el sistema produce:</p>
+<ol type="1">
+<li>Una lista de conexiones potenciales (díadas)</li>
+<li>La distancia a cada conexión</li>
+<li>Un peso para cada conexión basado en el decay elegido</li>
+</ol>
+<p>Estos resultados permiten:</p>
+<ul>
+<li>Analizar patrones de interacción potencial</li>
+<li>Identificar clusters naturales de estudiantes</li>
+<li>Estudiar cómo la densidad poblacional afecta las redes sociales</li>
+</ul>
+</section>
+<section id="conclusiones" class="level2">
+<h2 class="anchored" data-anchor-id="conclusiones">7. Conclusiones</h2>
+<p>El sistema integra de manera sofisticada:</p>
+<ol type="1">
+<li>Adaptación al contexto espacial</li>
+<li>Manejo realista de la probabilidad de interacción</li>
+<li>Eficiencia computacional</li>
+<li>Flexibilidad para diferentes tipos de análisis</li>
+</ol>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,199 @@
+---
+title: "Sistema de Redes barriales Egocéntricas"
+subtitle: "Radio adaptativo"
+format:
+  html:
+    theme:
+      - cosmo
+      - custom.scss
+    css: custom.scss
+    toc: true
+    toc-depth: 3
+    toc-title: "En este ejercicio"
+    toc-location: right
+execute:
+  warning: false
+  message: false
+abstract: | 
+  Este documento examina en detalle la implementación técnica de un sistema para la construcción de redes egocéntricas que incorpora mecanismos de ajuste dinámico del radio y funciones de decay. Se analiza cómo estos mecanismos permiten modelar de manera más precisa la probabilidad de encuentros casuales en espacios residenciales, considerando tanto la densidad poblacional como la distancia física entre individuos. Se presentan ejemplos prácticos y se discuten las implicaciones de los diferentes tipos de decay en la estructura de las redes resultantes.
+  
+image: "featured.jpg"
+title-block-banner: featured.jpg
+title-block-banner-color: "rgba(0, 0, 0, 0.8)"
+title-block-style: default
+---
+
+## 1. Fundamentos del Sistema
+
+El sistema está diseñado para crear redes egocéntricas que representen posibles interacciones entre estudiantes en espacios residenciales. Para entender cómo funciona, imaginemos una ciudad desde arriba: cada estudiante es un punto en el mapa, y queremos determinar con qué otros estudiantes podría interactuar basándonos en la proximidad física.
+
+### 1.1 El Concepto de Radio Adaptativo
+
+El radio adaptativo es como un círculo alrededor de cada estudiante que determina su "vecindario de interacción". La innovación clave es que este círculo no es de tamaño fijo, sino que se ajusta según dos factores:
+
+1. La densidad poblacional del área
+2. El número real de vecinos encontrados
+
+Es similar a cómo las personas naturalmente ajustan su "espacio de interacción" - en áreas densamente pobladas, tendemos a considerar un área más pequeña como nuestro vecindario, mientras que en áreas rurales, nuestro concepto de vecindario suele ser más amplio.
+
+## 2. El Sistema de Ajuste de Radio en Detalle
+
+El código implementa un sistema de ajuste en dos niveles:
+
+### 2.1 Primer Nivel: Ajuste por Densidad
+
+```r
+student_data %>%
+  mutate(
+    adaptive_radius = min_radius + (max_radius - min_radius) * (1 - density_norm),
+    adaptive_radius = pmin(max_radius, pmax(min_radius, adaptive_radius))
+  )
+```
+
+Este primer ajuste es como establecer una "expectativa inicial" del tamaño del vecindario. Por ejemplo:
+
+- En un área muy densa (density_norm ≈ 1): el radio se acerca a 300m
+- En un área poco densa (density_norm ≈ 0): el radio se acerca a 2000m
+
+### 2.2 Segundo Nivel: Ajuste Dinámico
+
+```r
+adjusted_radius <- case_when(
+  n_vecinos < 10 ~ global_max_distance,
+  n_vecinos > 50 ~ nth(dyads$distance, 50),
+  TRUE ~ dyads$ego_radius_initial[1]
+)
+```
+
+Este segundo ajuste es crucial porque responde a la realidad encontrada. Imagínemos tres escenarios:
+
+1. **Área Aislada** (menos de 10 vecinos):
+
+   - El sistema expande el radio al máximo (2000m)
+   - Es como decir: "Necesitamos buscar más lejos para encontrar suficientes conexiones potenciales"
+
+2. **Área Muy Densa** (más de 50 vecinos):
+
+   - El sistema reduce el radio para incluir solo los 50 más cercanos
+   - Es como decir: "Hay demasiadas conexiones potenciales, nos centramos en las más próximas"
+
+3. **Área Normal**:
+
+   - Mantiene el radio calculado por densidad
+   - Representa un equilibrio adecuado
+
+## 3. El Sistema de Decay en Profundidad
+
+El decay modela cómo la probabilidad de interacción disminuye con la distancia. Es como la diferencia entre un vecino que vive al lado y otro que vive a varias cuadras.
+
+### 3.1 Implementación del Decay
+
+```r
+weight = case_when(
+  decay_type == "linear" ~ pmax(0, 1 - distance/ego_radius_final),
+  decay_type == "exponential" ~ exp(-alpha * distance),
+  TRUE ~ 1
+)
+```
+
+Cada tipo de decay representa un modelo diferente de cómo la distancia afecta las interacciones:
+
+1. **Sin Decay (none)**:
+
+   - Peso siempre = 1
+   - Como decir: "Si estás dentro del radio, cuentas por igual"
+   - Ejemplo práctico:
+     - Vecino a 100m: peso = 1
+     - Vecino a 800m: peso = 1
+
+2. **Decay Lineal**:
+
+   - Disminución uniforme con la distancia
+   - Como decir: "La probabilidad de interacción disminuye constantemente"
+   - Ejemplo con radio = 1000m:
+     - Vecino a 100m: peso = 0.9
+     - Vecino a 500m: peso = 0.5
+     - Vecino a 800m: peso = 0.2
+
+3. **Decay Exponencial**:
+
+   - Caída rápida inicial que se suaviza
+   - Como decir: "Las interacciones cercanas son mucho más probables"
+   - Ejemplo con α = 0.001:
+     - Vecino a 100m: peso = 0.90
+     - Vecino a 500m: peso = 0.61
+     - Vecino a 800m: peso = 0.45
+
+### 3.2 Impacto en el Análisis
+
+El tipo de decay elegido afecta directamente:
+
+1. El peso de cada conexión en la red
+2. La importancia relativa de las interacciones según la distancia
+3. La estructura efectiva de la red resultante
+
+## 4. Ejemplo Práctico Integrado
+
+Veamos cómo funciona todo junto para un estudiante específico:
+
+```r
+# Ejemplo para un estudiante en un área de densidad media
+ejemplo_estudiante <- tibble(
+  ego_id = "estudiante1",
+  vecinos = 1:3,
+  distancia = c(200, 600, 900),
+  radio_inicial = 1000,
+  peso_none = 1,
+  peso_lineal = 1 - c(0.2, 0.6, 0.9),
+  peso_exp = exp(-0.001 * c(200, 600, 900))
+)
+```
+
+Este ejemplo muestra cómo los diferentes tipos de decay afectan las conexiones a diferentes distancias para un mismo estudiante.
+
+## 5. Aspectos Técnicos Importantes
+
+### 5.1 Optimización Espacial
+
+El código usa bounding boxes para optimizar la búsqueda de vecinos:
+```r
+if (use_bounding_box) {
+  batch_buffer <- st_buffer(st_union(batch_sf), global_max_distance)
+  ref_crop <- st_intersection(reference_sf, batch_buffer)
+}
+```
+
+Esto es como crear una "zona de búsqueda" eficiente alrededor de cada grupo de estudiantes.
+
+### 5.2 Procesamiento por Lotes
+
+El sistema procesa los datos en lotes para manejar eficientemente grandes volúmenes de información:
+```r
+total_students <- nrow(student_sf)
+n_batches <- ceiling(total_students / batch_size)
+```
+
+## 6. Resultados y Análisis
+
+Para cada estudiante, el sistema produce:
+
+1. Una lista de conexiones potenciales (díadas)
+2. La distancia a cada conexión
+3. Un peso para cada conexión basado en el decay elegido
+
+Estos resultados permiten:
+
+- Analizar patrones de interacción potencial
+- Identificar clusters naturales de estudiantes
+- Estudiar cómo la densidad poblacional afecta las redes sociales
+
+## 7. Conclusiones
+
+El sistema integra de manera sofisticada:
+
+1. Adaptación al contexto espacial
+2. Manejo realista de la probabilidad de interacción
+3. Eficiencia computacional
+4. Flexibilidad para diferentes tipos de análisis
+
+
