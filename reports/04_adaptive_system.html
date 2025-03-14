@@ -85,6 +85,35 @@ background: featured.jpg;
       }
 </style>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="custom.scss">
 </head>
@@ -124,12 +153,14 @@ background: featured.jpg;
   <ul class="collapse">
   <li><a href="#el-concepto-de-radio-adaptativo" id="toc-el-concepto-de-radio-adaptativo" class="nav-link" data-scroll-target="#el-concepto-de-radio-adaptativo">1.1 El Concepto de Radio Adaptativo</a></li>
   </ul></li>
-  <li><a href="#el-sistema-de-ajuste-de-radio-en-detalle" id="toc-el-sistema-de-ajuste-de-radio-en-detalle" class="nav-link" data-scroll-target="#el-sistema-de-ajuste-de-radio-en-detalle">2. El Sistema de Ajuste de Radio en Detalle</a>
+  <li><a href="#el-sistema-de-ajuste-de-radio-fundamentos-y-mecánica" id="toc-el-sistema-de-ajuste-de-radio-fundamentos-y-mecánica" class="nav-link" data-scroll-target="#el-sistema-de-ajuste-de-radio-fundamentos-y-mecánica">2. El Sistema de Ajuste de Radio: Fundamentos y Mecánica</a>
   <ul class="collapse">
-  <li><a href="#primer-nivel-ajuste-por-densidad" id="toc-primer-nivel-ajuste-por-densidad" class="nav-link" data-scroll-target="#primer-nivel-ajuste-por-densidad">2.1 Primer Nivel: Ajuste por Densidad</a></li>
-  <li><a href="#segundo-nivel-ajuste-dinámico" id="toc-segundo-nivel-ajuste-dinámico" class="nav-link" data-scroll-target="#segundo-nivel-ajuste-dinámico">2.2 Segundo Nivel: Ajuste Dinámico</a></li>
+  <li><a href="#principios-fundamentales" id="toc-principios-fundamentales" class="nav-link" data-scroll-target="#principios-fundamentales">2.1 Principios Fundamentales</a></li>
+  <li><a href="#formulación-matemática" id="toc-formulación-matemática" class="nav-link" data-scroll-target="#formulación-matemática">2.2 Formulación Matemática</a></li>
+  <li><a href="#mecanismo-de-captura-de-alteris" id="toc-mecanismo-de-captura-de-alteris" class="nav-link" data-scroll-target="#mecanismo-de-captura-de-alteris">2.3 Mecanismo de Captura de Alteris</a></li>
+  <li><a href="#ajuste-dinámico-opcional" id="toc-ajuste-dinámico-opcional" class="nav-link" data-scroll-target="#ajuste-dinámico-opcional">2.4 Ajuste Dinámico (Opcional)</a></li>
   </ul></li>
-  <li><a href="#el-sistema-de-decay-en-profundidad" id="toc-el-sistema-de-decay-en-profundidad" class="nav-link" data-scroll-target="#el-sistema-de-decay-en-profundidad">3. El Sistema de Decay en Profundidad</a>
+  <li><a href="#el-sistema-de-decay" id="toc-el-sistema-de-decay" class="nav-link" data-scroll-target="#el-sistema-de-decay">3. El Sistema de Decay</a>
   <ul class="collapse">
   <li><a href="#implementación-del-decay" id="toc-implementación-del-decay" class="nav-link" data-scroll-target="#implementación-del-decay">3.1 Implementación del Decay</a></li>
   <li><a href="#impacto-en-el-análisis" id="toc-impacto-en-el-análisis" class="nav-link" data-scroll-target="#impacto-en-el-análisis">3.2 Impacto en el Análisis</a></li>
@@ -164,59 +195,134 @@ background: featured.jpg;
 <p>Es similar a cómo las personas naturalmente ajustan su “espacio de interacción” - en áreas densamente pobladas, tendemos a considerar un área más pequeña como nuestro vecindario, mientras que en áreas rurales, nuestro concepto de vecindario suele ser más amplio.</p>
 </section>
 </section>
-<section id="el-sistema-de-ajuste-de-radio-en-detalle" class="level2">
-<h2 class="anchored" data-anchor-id="el-sistema-de-ajuste-de-radio-en-detalle">2. El Sistema de Ajuste de Radio en Detalle</h2>
-<p>El código implementa un sistema de ajuste en dos niveles:</p>
-<section id="primer-nivel-ajuste-por-densidad" class="level3">
-<h3 class="anchored" data-anchor-id="primer-nivel-ajuste-por-densidad">2.1 Primer Nivel: Ajuste por Densidad</h3>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>student_data <span class="sc">%&gt;%</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">adaptive_radius =</span> min_radius <span class="sc">+</span> (max_radius <span class="sc">-</span> min_radius) <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> density_norm),</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">adaptive_radius =</span> <span class="fu">pmin</span>(max_radius, <span class="fu">pmax</span>(min_radius, adaptive_radius))</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Este primer ajuste es como establecer una “expectativa inicial” del tamaño del vecindario. Por ejemplo:</p>
-<ul>
-<li>En un área muy densa (density_norm ≈ 1): el radio se acerca a 300m</li>
-<li>En un área poco densa (density_norm ≈ 0): el radio se acerca a 2000m</li>
-</ul>
-</section>
-<section id="segundo-nivel-ajuste-dinámico" class="level3">
-<h3 class="anchored" data-anchor-id="segundo-nivel-ajuste-dinámico">2.2 Segundo Nivel: Ajuste Dinámico</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>adjusted_radius <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  n_vecinos <span class="sc">&lt;</span> <span class="dv">10</span> <span class="sc">~</span> global_max_distance,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  n_vecinos <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="fu">nth</span>(dyads<span class="sc">$</span>distance, <span class="dv">50</span>),</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> dyads<span class="sc">$</span>ego_radius_initial[<span class="dv">1</span>]</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Este segundo ajuste es crucial porque responde a la realidad encontrada. Imagínemos tres escenarios:</p>
+<section id="el-sistema-de-ajuste-de-radio-fundamentos-y-mecánica" class="level2">
+<h2 class="anchored" data-anchor-id="el-sistema-de-ajuste-de-radio-fundamentos-y-mecánica">2. El Sistema de Ajuste de Radio: Fundamentos y Mecánica</h2>
+<section id="principios-fundamentales" class="level3">
+<h3 class="anchored" data-anchor-id="principios-fundamentales">2.1 Principios Fundamentales</h3>
+<p>El sistema se basa en dos principios clave:</p>
 <ol type="1">
-<li><p><strong>Área Aislada</strong> (menos de 10 vecinos):</p>
-<ul>
-<li>El sistema expande el radio al máximo (2000m)</li>
-<li>Es como decir: “Necesitamos buscar más lejos para encontrar suficientes conexiones potenciales”</li>
-</ul></li>
-<li><p><strong>Área Muy Densa</strong> (más de 50 vecinos):</p>
-<ul>
-<li>El sistema reduce el radio para incluir solo los 50 más cercanos</li>
-<li>Es como decir: “Hay demasiadas conexiones potenciales, nos centramos en las más próximas”</li>
-</ul></li>
-<li><p><strong>Área Normal</strong>:</p>
-<ul>
-<li>Mantiene el radio calculado por densidad</li>
-<li>Representa un equilibrio adecuado</li>
-</ul></li>
+<li><p><strong>Compensación Densidad-Área</strong>: El radio debe variar inversamente con la raíz cuadrada de la densidad para compensar el crecimiento cuadrático del área.</p></li>
+<li><p><strong>Acotamiento del Radio</strong>: Los radios están limitados por umbrales mínimo y máximo que representan límites razonables de interacción social.</p></li>
 </ol>
 </section>
+<section id="formulación-matemática" class="level3">
+<h3 class="anchored" data-anchor-id="formulación-matemática">2.2 Formulación Matemática</h3>
+<section id="ecuación-base" class="level4">
+<h4 class="anchored" data-anchor-id="ecuación-base">2.2.1 Ecuación Base</h4>
+<p>El número esperado de alteris (N) en un círculo está dado por:</p>
+<p><span class="math inline">\(N = D × A = D × πr²\)</span></p>
+<p>donde: - D: densidad poblacional - A: área del círculo - r: radio del círculo</p>
+<p>Para mantener N aproximadamente constante entre zonas de diferente densidad:</p>
+<p><span class="math inline">\(N = D_1 × πr_1² = D_2 × πr_2² = k\)</span> (constante)</p>
+<p>Por lo tanto:</p>
+<p><span class="math inline">\(r ∝ \frac{1}{\sqrt{D}}\)</span></p>
 </section>
-<section id="el-sistema-de-decay-en-profundidad" class="level2">
-<h2 class="anchored" data-anchor-id="el-sistema-de-decay-en-profundidad">3. El Sistema de Decay en Profundidad</h2>
+<section id="normalización-y-ajuste" class="level4">
+<h4 class="anchored" data-anchor-id="normalización-y-ajuste">2.2.2 Normalización y Ajuste</h4>
+<ol type="1">
+<li><p><strong>Normalización de Densidad</strong>: <span class="math inline">\(D_{norm} = \sqrt{\frac{D}{D_{max}}}\)</span></p></li>
+<li><p><strong>Radio Adaptativo</strong>: <span class="math inline">\(r = r_{min} + (r_{max} - r_{min})(1 - D_{norm})\)</span></p></li>
+</ol>
+<p>La implementación en código:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Control para densidad uniforme</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">max</span>(student_data<span class="sc">$</span>density, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">==</span> <span class="fu">min</span>(student_data<span class="sc">$</span>density, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a> student_data<span class="sc">$</span>density_norm <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a> student_data <span class="ot">&lt;-</span> student_data <span class="sc">%&gt;%</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">density_norm =</span> <span class="fu">sqrt</span>(density<span class="sc">/</span><span class="fu">max</span>(density, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">adaptive_radius =</span> min_radius <span class="sc">+</span> (max_radius <span class="sc">-</span> min_radius) <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> density_norm),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">adaptive_radius =</span> <span class="fu">pmin</span>(max_radius, <span class="fu">pmax</span>(min_radius, adaptive_radius))</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>   )</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="análisis-cuantitativo" class="level4">
+<h4 class="anchored" data-anchor-id="análisis-cuantitativo">2.2.3 Análisis Cuantitativo</h4>
+<p>Consideremos tres escenarios característicos:</p>
+<p>Zona Urbana Densa (D = 10,000 hab/km²):</p>
+<ul>
+<li>D_norm = 1</li>
+<li>r = 300m</li>
+<li>A = π(0.3)² = 0.28 km²</li>
+<li>N_esperado = 2,800 alteris potenciales</li>
+</ul>
+<p>Zona Residencial (D = 2,500 hab/km²):</p>
+<ul>
+<li>D_norm = 0.5</li>
+<li>r = 1,150m</li>
+<li>A = π(1.15)² = 4.15 km²</li>
+<li>N_esperado = 10,375 alteris potenciales</li>
+</ul>
+<p>Zona Rural (D = 625 hab/km²):</p>
+<ul>
+<li>D_norm = 0.25</li>
+<li>r = 1,575m</li>
+<li>A = π(1.575)² = 7.79 km²</li>
+<li>N_esperado = 4,869 alteris potenciales</li>
+</ul>
+</section>
+</section>
+<section id="mecanismo-de-captura-de-alteris" class="level3">
+<h3 class="anchored" data-anchor-id="mecanismo-de-captura-de-alteris">2.3 Mecanismo de Captura de Alteris</h3>
+<p>El proceso se ejecuta en tres fases:</p>
+<ol type="1">
+<li>Fase de Cálculo:</li>
+</ol>
+<p>Determina el radio adaptativo basado en densidad Aplica límites min_radius y max_radius</p>
+<ol start="2" type="1">
+<li>Fase de Búsqueda:</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>nn_res <span class="ot">&lt;-</span> <span class="fu">st_nn</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> batch_sf,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> ref_crop,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">k =</span> <span class="dv">10000</span>,       <span class="co"># Alto para evitar truncamiento artificial</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">maxdist =</span> global_max_distance,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">returnDist =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ol start="3" type="1">
+<li>Fase de Filtrado:</li>
+</ol>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dyads <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(distance <span class="sc">&lt;=</span> ego_radius)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="ajuste-dinámico-opcional" class="level3">
+<h3 class="anchored" data-anchor-id="ajuste-dinámico-opcional">2.4 Ajuste Dinámico (Opcional)</h3>
+<p>El sistema permite un ajuste secundario basado en el número real de vecinos encontrados:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>adjusted_radius <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  n_vecinos <span class="sc">&lt;</span> <span class="dv">10</span> <span class="sc">~</span> global_max_distance,  <span class="co"># Compensación por aislamiento</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  n_vecinos <span class="sc">&gt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="fu">nth</span>(dyads<span class="sc">$</span>distance, <span class="dv">50</span>), <span class="co"># Control de densidad excesiva</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> ego_radius</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Este ajuste opcional puede ser útil para:</p>
+<ul>
+<li>Garantizar conectividad mínima en áreas muy aisladas</li>
+<li>Evitar sobrecarga computacional en áreas ultra densas</li>
+<li>Mantener redes manejables en tamaño</li>
+</ul>
+<ol start="3" type="1">
+<li>Aplicación del filtro por radio: Selecciona solo los alteris dentro del radio adaptativo</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dyads <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(distance <span class="sc">&lt;=</span> ego_radius)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Este sistema de filtrado asegura que:</p>
+<ul>
+<li>En zonas densas: Un radio pequeño captura suficientes alteris en un espacio reducido</li>
+<li>En zonas menos densas: Un radio mayor compensa la menor densidad poblacional</li>
+</ul>
+<p>La variación en el tamaño de las redes refleja orgánicamente las características del entorno residencial</p>
+<p>La interacción entre densidad y radio es fundamental: el radio actúa como un “filtro espacial” cuyo tamaño se adapta a las condiciones locales, permitiendo que el número final de alteris varíe naturalmente según el contexto urbano o rural del estudiante.</p>
+</section>
+</section>
+<section id="el-sistema-de-decay" class="level2">
+<h2 class="anchored" data-anchor-id="el-sistema-de-decay">3. El Sistema de Decay</h2>
 <p>El decay modela cómo la probabilidad de interacción disminuye con la distancia. Es como la diferencia entre un vecino que vive al lado y otro que vive a varias cuadras.</p>
 <section id="implementación-del-decay" class="level3">
 <h3 class="anchored" data-anchor-id="implementación-del-decay">3.1 Implementación del Decay</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>weight <span class="ot">=</span> <span class="fu">case_when</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  decay_type <span class="sc">==</span> <span class="st">"linear"</span> <span class="sc">~</span> <span class="fu">pmax</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">-</span> distance<span class="sc">/</span>ego_radius_final),</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  decay_type <span class="sc">==</span> <span class="st">"exponential"</span> <span class="sc">~</span> <span class="fu">exp</span>(<span class="sc">-</span>alpha <span class="sc">*</span> distance),</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">1</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>weight <span class="ot">=</span> <span class="fu">case_when</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  decay_type <span class="sc">==</span> <span class="st">"linear"</span> <span class="sc">~</span> <span class="fu">pmax</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">-</span> distance<span class="sc">/</span>ego_radius_final),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  decay_type <span class="sc">==</span> <span class="st">"exponential"</span> <span class="sc">~</span> <span class="fu">exp</span>(<span class="sc">-</span>alpha <span class="sc">*</span> distance),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">1</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Cada tipo de decay representa un modelo diferente de cómo la distancia afecta las interacciones:</p>
 <ol type="1">
 <li><p><strong>Sin Decay (none)</strong>:</p>
@@ -266,16 +372,16 @@ background: featured.jpg;
 <section id="ejemplo-práctico-integrado" class="level2">
 <h2 class="anchored" data-anchor-id="ejemplo-práctico-integrado">4. Ejemplo Práctico Integrado</h2>
 <p>Veamos cómo funciona todo junto para un estudiante específico:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ejemplo para un estudiante en un área de densidad media</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ejemplo_estudiante <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">ego_id =</span> <span class="st">"estudiante1"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vecinos =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">distancia =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">600</span>, <span class="dv">900</span>),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">radio_inicial =</span> <span class="dv">1000</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_none =</span> <span class="dv">1</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_lineal =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.6</span>, <span class="fl">0.9</span>),</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_exp =</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.001</span> <span class="sc">*</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">600</span>, <span class="dv">900</span>))</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ejemplo para un estudiante en un área de densidad media</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ejemplo_estudiante <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">ego_id =</span> <span class="st">"estudiante1"</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vecinos =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">distancia =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">600</span>, <span class="dv">900</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">radio_inicial =</span> <span class="dv">1000</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_none =</span> <span class="dv">1</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_lineal =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.6</span>, <span class="fl">0.9</span>),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">peso_exp =</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.001</span> <span class="sc">*</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">600</span>, <span class="dv">900</span>))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Este ejemplo muestra cómo los diferentes tipos de decay afectan las conexiones a diferentes distancias para un mismo estudiante.</p>
 </section>
 <section id="aspectos-técnicos-importantes" class="level2">
@@ -283,17 +389,17 @@ background: featured.jpg;
 <section id="optimización-espacial" class="level3">
 <h3 class="anchored" data-anchor-id="optimización-espacial">5.1 Optimización Espacial</h3>
 <p>El código usa bounding boxes para optimizar la búsqueda de vecinos:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (use_bounding_box) {</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  batch_buffer <span class="ot">&lt;-</span> <span class="fu">st_buffer</span>(<span class="fu">st_union</span>(batch_sf), global_max_distance)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  ref_crop <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(reference_sf, batch_buffer)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (use_bounding_box) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  batch_buffer <span class="ot">&lt;-</span> <span class="fu">st_buffer</span>(<span class="fu">st_union</span>(batch_sf), global_max_distance)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  ref_crop <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(reference_sf, batch_buffer)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Esto es como crear una “zona de búsqueda” eficiente alrededor de cada grupo de estudiantes.</p>
 </section>
 <section id="procesamiento-por-lotes" class="level3">
 <h3 class="anchored" data-anchor-id="procesamiento-por-lotes">5.2 Procesamiento por Lotes</h3>
 <p>El sistema procesa los datos en lotes para manejar eficientemente grandes volúmenes de información:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>total_students <span class="ot">&lt;-</span> <span class="fu">nrow</span>(student_sf)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n_batches <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(total_students <span class="sc">/</span> batch_size)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>total_students <span class="ot">&lt;-</span> <span class="fu">nrow</span>(student_sf)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>n_batches <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(total_students <span class="sc">/</span> batch_size)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 </section>
 <section id="resultados-y-análisis" class="level2">

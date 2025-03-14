@@ -1,3 +1,4 @@
+
 ################################################################################
 # CONSTRUCCIÓN DE REDES EGOCÉNTRICAS DE VECINDARIO ADAPTANDO DISTANCIAS Y DECAY
 # USANDO st_distance Y st_nn PARA MAYOR EFICIENCIA
@@ -22,177 +23,165 @@ log_message <- function(message, error = FALSE) {
     cat(formatted_msg, "\n")
   }
 }
+gc()
 
 #===============================================================================
 # PARTE 1: CÁLCULO DE RADIO ADAPTATIVO BASADO EN DENSIDAD CENSAL
 #===============================================================================
 calculate_adaptive_radius <- function(student_data, 
-                                      target_neighbors = 30,    # Número ideal de vecinos
-                                      min_radius = 300,         # Radio mínimo en metros
-                                      max_radius = 2000) {      # Radio máximo en metros
+                                      min_radius = 100,    
+                                      max_radius = 1000) {
   
-  # Normalizamos la densidad censal
-  student_data <- student_data %>%
-    mutate(
-      density_norm = (density - min(density, na.rm = TRUE)) / 
-        (max(density, na.rm = TRUE) - min(density, na.rm = TRUE))
-    )
-  
-  # Calculamos radio base inversamente proporcional a la densidad normalizada
   student_data %>%
     mutate(
-      # Radio base entre min_radius y max_radius según densidad
-      adaptive_radius = min_radius + (max_radius - min_radius) * (1 - density_norm),
-      # Aseguramos que esté dentro de los límites
-      adaptive_radius = pmin(max_radius, pmax(min_radius, adaptive_radius))
+      # Primero, creamos un ranking normalizado de densidad
+      # rank() ordena de menor a mayor, así que las densidades más altas tendrán rankings más altos
+      # Al dividir por n(), normalizamos el ranking entre 0 y 1
+      density_rank = rank(density)/n(),
+      
+      # Ahora calculamos el radio de manera inversamente proporcional al ranking
+      # Cuando density_rank es alto (alta densidad), el radio será más cercano a min_radius
+      # Cuando density_rank es bajo (baja densidad), el radio será más cercano a max_radius
+      adaptive_radius = max_radius - (max_radius - min_radius) * density_rank
     )
 }
+
 
 #===============================================================================
 # PARTE 2: FUNCIÓN PRINCIPAL PARA CREAR DÍADAS
 #===============================================================================
 create_adaptive_dyads <- function(
     student_data,
-    reference_data       = NULL,
-    global_max_distance  = 2000,   
-    batch_size          = 500,
-    decay_type          = "none", 
-    alpha               = 0.001,  
-    crs_projected       = 32719,  
-    use_bounding_box    = TRUE
+    reference_data = NULL,
+    global_max_distance = 2000,
+    batch_size = 500,
+    decay_type = "none",
+    alpha = 0.001,
+    crs_projected = 32719,
+    use_bounding_box = TRUE
 ) {
-  log_message("Iniciando creación de díadas con st_distance y st_nn...")
+  log_message("Iniciando creación de díadas basadas en densidad...")
   
-  # Si reference_data es NULL, usamos student_data
-  reference_data <- if (is.null(reference_data)) student_data else reference_data
+  # [Toda la validación y preparación se mantiene igual hasta el procesamiento por lotes]
+  
+  # Validación de datos
+  required_cols <- c("mrun", "lat_con_error", "lon_con_error", "comuna", "density")
+  if (!all(required_cols %in% names(student_data))) {
+    log_message("Faltan columnas requeridas", error = TRUE)
+    return(NULL)
+  }
+  
+  # Si no hay datos de referencia, usamos los mismos datos
+  reference_data <- reference_data %||% student_data
   
   # Calculamos radios adaptativos
   student_data <- calculate_adaptive_radius(student_data)
   reference_data <- calculate_adaptive_radius(reference_data)
   
-  # Seleccionamos columnas necesarias
-  student_data <- student_data %>%
-    select(mrun, lat_con_error, lon_con_error, comuna, cohort, adaptive_radius, density) %>%
-    rename(id = mrun, lat = lat_con_error, lon = lon_con_error)
-  
-  reference_data <- reference_data %>%
-    select(mrun, lat_con_error, lon_con_error, comuna, cohort, adaptive_radius, density) %>%
-    rename(id = mrun, lat = lat_con_error, lon = lon_con_error)
-  
-  # Convertir a sf 
-  student_sf <- st_as_sf(student_data, coords = c("lon","lat"), crs = 4326, remove = FALSE)
-  reference_sf <- st_as_sf(reference_data, coords = c("lon","lat"), crs = 4326, remove = FALSE)
-  
-  # Transformar a CRS proyectado
-  if (!is.null(crs_projected)) {
-    student_sf <- st_transform(student_sf, crs_projected)
-    reference_sf <- st_transform(reference_sf, crs_projected)
+  # Preparación de datos espaciales
+  prepare_sf <- function(data) {
+    data %>%
+      select(mrun, lat_con_error, lon_con_error, comuna, adaptive_radius, density) %>%
+      rename(id = mrun, lat = lat_con_error, lon = lon_con_error) %>%
+      st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+      st_transform(crs_projected)
   }
   
-  total_students <- nrow(student_data)
+  student_sf <- prepare_sf(student_data)
+  reference_sf <- prepare_sf(reference_data)
+  
+  # Verificamos que tengamos datos suficientes
+  if (nrow(student_sf) == 0 || nrow(reference_sf) == 0) {
+    log_message("No hay suficientes datos para procesar", error = TRUE)
+    return(NULL)
+  }
+  
+  total_students <- nrow(student_sf)
   n_batches <- ceiling(total_students / batch_size)
   all_dyads <- vector("list", n_batches)
   
-  # Loop de batches
+  # Procesamiento por lotes
   for (i in seq_len(n_batches)) {
     start_idx <- (i-1) * batch_size + 1
     end_idx <- min(i * batch_size, total_students)
-    log_message(sprintf("Procesando lote %d/%d (%d - %d)", 
-                        i, n_batches, start_idx, end_idx))
     
     batch_sf <- student_sf[start_idx:end_idx, ]
     
-    # Recorte espacial opcional
+    # Optimización espacial
     if (use_bounding_box) {
-      batch_union <- st_union(batch_sf)
-      batch_buffer <- st_buffer(batch_union, global_max_distance) 
+      batch_buffer <- st_buffer(st_union(batch_sf), global_max_distance)
       ref_crop <- st_intersection(reference_sf, batch_buffer)
     } else {
       ref_crop <- reference_sf
     }
     
+    # Si no hay puntos de referencia cercanos, continuamos al siguiente lote
     if (nrow(ref_crop) == 0) {
       all_dyads[[i]] <- tibble()
       next
     }
     
-    # Búsqueda de vecinos usando st_nn
-    nn_res <- st_nn(
-      x = batch_sf,
-      y = ref_crop,
-      k = 500,                    
-      maxdist = global_max_distance,
-      returnDist = TRUE,
-      progress = FALSE
-    )
-    
-    # Extraer información de ego
-    all_ego_ids <- batch_sf$id
-    all_ego_com <- batch_sf$comuna
-    all_ego_radius <- batch_sf$adaptive_radius
-    all_ego_density <- batch_sf$density
-    
-    # Crear díadas para el batch
-    batch_dyads_list <- map2(
-      .x = nn_res$nn,   
-      .y = nn_res$dist, 
-      .f = function(nn_idx, nn_dist) {
-        if (length(nn_idx) == 0) {
-          return(NULL)
-        } else {
+    # Búsqueda de vecinos con manejo de errores
+    tryCatch({
+      nn_res <- st_nn(
+        x = batch_sf,
+        y = ref_crop,
+        k = nrow(ref_crop),  # Usar el número total de puntos disponibles
+        maxdist = global_max_distance,
+        returnDist = TRUE,
+        progress = FALSE
+      )
+      
+      # Creación de díadas usando solo el radio basado en densidad
+      batch_dyads <- map2_dfr(
+        nn_res$nn,
+        seq_along(nn_res$nn),
+        function(nn_idx, i_ego) {
+          if (length(nn_idx) == 0) return(tibble())
+          
+          distances <- nn_res$dist[[i_ego]]
           ref_sel <- ref_crop[nn_idx, ]
           
-          tibble(
-            ego_id = NA_character_,
+          # Creación de díadas usando el radio basado en densidad
+          dyads <- tibble(
+            ego_id = batch_sf$id[i_ego],
             alter_id = ref_sel$id,
-            ego_comuna = NA_character_,
+            ego_comuna = batch_sf$comuna[i_ego],
             alter_comuna = ref_sel$comuna,
-            ego_radius = NA_real_,
-            ego_density = NA_real_,
-            distance = nn_dist
+            ego_radius = batch_sf$adaptive_radius[i_ego],  # Radio basado en densidad
+            distance = distances
           )
+          
+          # Filtramos usando el radio basado en densidad y aplicamos decay
+          dyads %>%
+            filter(distance <= ego_radius) %>%
+            mutate(
+              weight = case_when(
+                decay_type == "linear" ~ pmax(0, 1 - distance/ego_radius),
+                decay_type == "exponential" ~ exp(-alpha * distance),
+                TRUE ~ 1
+              )
+            )
         }
-      }
-    )
+      )
+      
+      all_dyads[[i]] <- batch_dyads
+      
+    }, error = function(e) {
+      log_message(sprintf("Error en lote %d: %s", i, e$message), error = TRUE)
+      all_dyads[[i]] <- tibble()
+    })
     
-    # Asignar información del ego
-    batch_dyads <- map2_dfr(
-      .x = batch_dyads_list,
-      .y = seq_along(batch_dyads_list),
-      .f = function(d, i_ego) {
-        if (is.null(d)) return(tibble())
-        d$ego_id <- all_ego_ids[i_ego]
-        d$ego_comuna <- all_ego_com[i_ego]
-        d$ego_radius <- all_ego_radius[i_ego]
-        d$ego_density <- all_ego_density[i_ego]
-        d
-      }
-    )
-    
-    # Filtros y cálculo de pesos
-    batch_dyads <- batch_dyads %>%
-      filter(
-        ego_id != alter_id,           # Excluir autoconexiones
-        distance <= ego_radius        # Filtrar por radio adaptativo
-      ) %>%
-      mutate(
-        weight = case_when(
-          decay_type == "linear" ~ pmax(0, 1 - distance/ego_radius),
-          decay_type == "exponential" ~ exp(-alpha * distance),
-          TRUE ~ 1
-        )
-      ) %>%
-      select(ego_id, alter_id, ego_comuna, alter_comuna,
-             ego_radius, ego_density, distance, weight)
-    
-    all_dyads[[i]] <- batch_dyads
-    gc()
+    gc()  # Limpieza de memoria
   }
   
+  # Combinamos todos los resultados
   final_dyads <- bind_rows(all_dyads)
-  log_message("Finalizando creación de díadas.")
+  
+  log_message(sprintf("Proceso completado. Se generaron %d díadas", nrow(final_dyads)))
   return(final_dyads)
 }
+
 
 #===============================================================================
 # PARTE 3: CREACIÓN DE DÍADAS HISTÓRICAS
@@ -329,7 +318,7 @@ all_samples <- list(
 results_2022_base <- run_dyad_creation_adaptive(
   samples = all_samples,
   target_year = 2022,
-  global_max_distance = 2000,  # 2 km máximo
+  global_max_distance = 1000,  # 2 km máximo
   batch_size = 2000,          # Tamaño de lote
   decay_type = "none",        # Sin decay
   crs_projected = 32719,      # UTM 19S para Chile central
@@ -370,31 +359,59 @@ summary_comparison <- bind_rows(
 
 print(summary_comparison)
 
-# 2. Analizamos distribución de tamaños de red para versión base
-network_sizes_base <- results_2022_base$dyads %>%
-  group_by(ego_id) %>%
+# 1. Primero calculamos el tamaño de la red para cada ego por año
+network_sizes <- results_2022_base$dyads %>%
+  group_by(ego_id, reference_year) %>%
   summarise(
-    network_size = n_distinct(alter_id),
-    avg_distance = mean(distance),
-    avg_density = mean(ego_density),
+    network_size = n(),  # Cuenta el número de alteris por ego
+    avg_distance = mean(distance),  # Agregamos distancia promedio para análisis
+    ego_radius = first(ego_radius), # Capturamos el radio usado
     .groups = "drop"
   )
 
-summary(network_sizes_base)
 
-# 3. Visualizamos relación entre densidad y tamaño de red
-ggplot(network_sizes_base, aes(x = avg_density, y = network_size)) +
-  geom_point(alpha = 0.1) +
-  geom_smooth(method = "loess") +
-  theme_minimal() +
-  labs(
-    title = "Relación entre Densidad Censal y Tamaño de Red",
-    x = "Densidad Promedio",
-    y = "Tamaño de Red"
+d <- results_2022_base$dyads 
+
+# 2. Análisis estadístico completo por año
+network_stats <- network_sizes %>%
+  group_by(reference_year) %>%
+  summarise(
+    n_egos = n(),                    # Número total de egos
+    mean_size = mean(network_size),  # Tamaño promedio de red
+    sd_size = sd(network_size),      # Desviación estándar
+    min_size = min(network_size),    # Tamaño mínimo
+    q20 = quantile(network_size, 0.2),  # Primer quintil
+    q40 = quantile(network_size, 0.4),  # Segundo quintil
+    median = median(network_size),      # Mediana
+    q60 = quantile(network_size, 0.6),  # Tercer quintil
+    q80 = quantile(network_size, 0.8),  # Cuarto quintil
+    max_size = max(network_size),       # Tamaño máximo
+    mean_distance = mean(avg_distance), # Distancia promedio
+    mean_radius = mean(ego_radius)      # Radio promedio
   )
 
-# Guardamos resultados
-# Nota: Ajusta las rutas según tu preferencia
-write_rds(results_2022_base, "outputs/results_2022_base.rds")
-write_rds(results_2022_linear, "outputs/results_2022_linear.rds")
-write_rds(results_2022_exp, "outputs/results_2022_exp.rds")
+# Mostramos los resultados
+print("Estadísticas descriptivas por año:")
+print(network_stats)
+
+# 3. Creamos el histograma usando ggplot2
+library(ggplot2)
+
+histogram_plot <- ggplot(network_sizes, aes(x = network_size)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "white", alpha = 0.7) +
+  facet_wrap(~reference_year, scales = "free_y") +
+  labs(
+    title = "Distribución del tamaño de redes egocéntricas por año",
+    subtitle = "Usando radio adaptativo basado en densidad",
+    x = "Tamaño de la red (número de alteris)",
+    y = "Frecuencia"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    strip.text = element_text(size = 12)
+  )
+
+# Guardamos el gráfico
+ggsave("histograma_redes_densidad.png", histogram_plot, width = 12, height = 8)

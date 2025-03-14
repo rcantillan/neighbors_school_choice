@@ -36,53 +36,151 @@ El radio adaptativo es como un círculo alrededor de cada estudiante que determi
 
 Es similar a cómo las personas naturalmente ajustan su "espacio de interacción" - en áreas densamente pobladas, tendemos a considerar un área más pequeña como nuestro vecindario, mientras que en áreas rurales, nuestro concepto de vecindario suele ser más amplio.
 
-## 2. El Sistema de Ajuste de Radio en Detalle
+## 2. El Sistema de Ajuste de Radio: Fundamentos y Mecánica
 
-El código implementa un sistema de ajuste en dos niveles:
+### 2.1 Principios Fundamentales
 
-### 2.1 Primer Nivel: Ajuste por Densidad
+El sistema se basa en dos principios clave:
+
+1. **Compensación Densidad-Área**: El radio debe variar inversamente con la raíz cuadrada de la densidad para compensar el crecimiento cuadrático del área.
+
+2. **Acotamiento del Radio**: Los radios están limitados por umbrales mínimo y máximo que representan límites razonables de interacción social.
+
+### 2.2 Formulación Matemática
+
+#### 2.2.1 Ecuación Base
+
+El número esperado de alteris (N) en un círculo está dado por:
+
+$N = D × A = D × πr²$
+
+donde:
+- D: densidad poblacional
+- A: área del círculo
+- r: radio del círculo
+
+Para mantener N aproximadamente constante entre zonas de diferente densidad:
+
+$N = D_1 × πr_1² = D_2 × πr_2² = k$ (constante)
+
+Por lo tanto:
+
+$r ∝ \frac{1}{\sqrt{D}}$
+
+#### 2.2.2 Normalización y Ajuste
+
+1. **Normalización de Densidad**:
+  $D_{norm} = \sqrt{\frac{D}{D_{max}}}$
+
+2. **Radio Adaptativo**:
+  $r = r_{min} + (r_{max} - r_{min})(1 - D_{norm})$
+
+La implementación en código:
 
 ```r
-student_data %>%
-  mutate(
-    adaptive_radius = min_radius + (max_radius - min_radius) * (1 - density_norm),
-    adaptive_radius = pmin(max_radius, pmax(min_radius, adaptive_radius))
-  )
+# Control para densidad uniforme
+if (max(student_data$density, na.rm = TRUE) == min(student_data$density, na.rm = TRUE)) {
+ student_data$density_norm <- 0.5
+} else {
+ student_data <- student_data %>%
+   mutate(
+     density_norm = sqrt(density/max(density, na.rm = TRUE)),
+     adaptive_radius = min_radius + (max_radius - min_radius) * (1 - density_norm),
+     adaptive_radius = pmin(max_radius, pmax(min_radius, adaptive_radius))
+   )
+}
 ```
 
-Este primer ajuste es como establecer una "expectativa inicial" del tamaño del vecindario. Por ejemplo:
+#### 2.2.3 Análisis Cuantitativo
 
-- En un área muy densa (density_norm ≈ 1): el radio se acerca a 300m
-- En un área poco densa (density_norm ≈ 0): el radio se acerca a 2000m
+Consideremos tres escenarios característicos:
 
-### 2.2 Segundo Nivel: Ajuste Dinámico
+Zona Urbana Densa (D = 10,000 hab/km²):
+
+- D_norm = 1
+- r = 300m
+- A = π(0.3)² = 0.28 km²
+- N_esperado = 2,800 alteris potenciales
+
+
+Zona Residencial (D = 2,500 hab/km²):
+
+- D_norm = 0.5
+- r = 1,150m
+- A = π(1.15)² = 4.15 km²
+- N_esperado = 10,375 alteris potenciales
+
+
+Zona Rural (D = 625 hab/km²):
+
+- D_norm = 0.25
+- r = 1,575m
+- A = π(1.575)² = 7.79 km²
+- N_esperado = 4,869 alteris potenciales
+
+
+### 2.3 Mecanismo de Captura de Alteris
+
+El proceso se ejecuta en tres fases:
+
+1. Fase de Cálculo:
+
+Determina el radio adaptativo basado en densidad
+Aplica límites min_radius y max_radius
+
+
+2. Fase de Búsqueda:
+
+```r
+nn_res <- st_nn(
+  x = batch_sf,
+  y = ref_crop,
+  k = 10000,       # Alto para evitar truncamiento artificial
+  maxdist = global_max_distance,
+  returnDist = TRUE
+)
+```
+3. Fase de Filtrado:
+
+```r
+dyads %>%
+  filter(distance <= ego_radius)
+```
+### 2.4 Ajuste Dinámico (Opcional)
+
+El sistema permite un ajuste secundario basado en el número real de vecinos encontrados:
 
 ```r
 adjusted_radius <- case_when(
-  n_vecinos < 10 ~ global_max_distance,
-  n_vecinos > 50 ~ nth(dyads$distance, 50),
-  TRUE ~ dyads$ego_radius_initial[1]
+  n_vecinos < 10 ~ global_max_distance,  # Compensación por aislamiento
+  n_vecinos > 50 ~ nth(dyads$distance, 50), # Control de densidad excesiva
+  TRUE ~ ego_radius
 )
 ```
 
-Este segundo ajuste es crucial porque responde a la realidad encontrada. Imagínemos tres escenarios:
+Este ajuste opcional puede ser útil para:
 
-1. **Área Aislada** (menos de 10 vecinos):
+- Garantizar conectividad mínima en áreas muy aisladas
+- Evitar sobrecarga computacional en áreas ultra densas
+- Mantener redes manejables en tamaño
 
-   - El sistema expande el radio al máximo (2000m)
-   - Es como decir: "Necesitamos buscar más lejos para encontrar suficientes conexiones potenciales"
+3. Aplicación del filtro por radio: Selecciona solo los alteris dentro del radio adaptativo
 
-2. **Área Muy Densa** (más de 50 vecinos):
+```r
+dyads %>%
+  filter(distance <= ego_radius)
+```
 
-   - El sistema reduce el radio para incluir solo los 50 más cercanos
-   - Es como decir: "Hay demasiadas conexiones potenciales, nos centramos en las más próximas"
+Este sistema de filtrado asegura que:
 
-3. **Área Normal**:
+- En zonas densas: Un radio pequeño captura suficientes alteris en un espacio reducido
+- En zonas menos densas: Un radio mayor compensa la menor densidad poblacional
 
-   - Mantiene el radio calculado por densidad
-   - Representa un equilibrio adecuado
+La variación en el tamaño de las redes refleja orgánicamente las características del entorno residencial
 
-## 3. El Sistema de Decay en Profundidad
+La interacción entre densidad y radio es fundamental: el radio actúa como un "filtro espacial" cuyo tamaño se adapta a las condiciones locales, permitiendo que el número final de alteris varíe naturalmente según el contexto urbano o rural del estudiante.
+
+## 3. El Sistema de Decay 
 
 El decay modela cómo la probabilidad de interacción disminuye con la distancia. Es como la diferencia entre un vecino que vive al lado y otro que vive a varias cuadras.
 
