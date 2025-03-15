@@ -473,7 +473,10 @@ library(lmtest)
 library(ggplot2)  
 library(splines)
 
+# datos
 glimpse(d)
+
+# ses distance
 d <- d %>% mutate(ses_distance = ses_ego - ses_alter)
 
 # distribución variable independiente "status"
