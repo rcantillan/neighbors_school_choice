@@ -523,8 +523,14 @@ gc()
 
 
 # Modelo con términos cuadrático y cúbico
-model_cubic <- glm(mismo_post_matric ~ ses_distance + I(ses_distance^2) + I(ses_distance^3) + 
-                     shannon_index + network_size, 
+model_cubic <- glm(mismo_post_matric ~
+                     ses_distance 
+                     + I(ses_distance^2)  
+                     + ses_mean 
+                     + shannon_matric_index  
+                     + network_size 
+                     + factor(reference_year)   
+                     + weight_exp, 
                    data = d, family = "binomial"); gc()
 summary(model_cubic)
 cluster_vcov_cubic <- vcovCL(model_cubic, cluster = d$ego_id)
@@ -534,7 +540,9 @@ coeftest(model_cubic, vcov = cluster_vcov_cubic)
 newdata <- data.frame(
   ses_distance = seq(-10, 10, length.out = 200),
   shannon_matric_index = mean(d$shannon_matric_index, na.rm=TRUE),
-  network_size = mean(d$network_size, na.rm=TRUE)
+  network_size = mean(d$network_size, na.rm=TRUE),
+  reference_year = 2019,
+  weight_exp = mean(d$weight_exp, na.rm=TRUE)
 )
 
 # Obtener predicciones del modelo cúbico
