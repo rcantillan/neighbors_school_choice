@@ -109,13 +109,14 @@ print(vif_resultado)
 
 
 
+
 library(tidyverse)
 library(patchwork)
 
 # 1. MODELOS NECESARIOS
 # Modelo cúbico
 modelo_cubico <- glm(mismo_post_matric ~ 
-                       ses_distance + I(ses_distance^2) + I(ses_distance^3) +
+                       ses_distance + I(ses_distance^2) + 
                        shannon_index + network_size + weight_exp, 
                      data = d, family = "binomial")
 
@@ -420,7 +421,7 @@ p2 <- ggplot(pred_data_heatmap,
 combined_plot <- p1 / p2 + plot_layout(heights = c(3, 2))
 print(combined_plot)
 
-
+glimpse(d)
 
 
 
