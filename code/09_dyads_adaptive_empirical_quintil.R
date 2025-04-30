@@ -236,6 +236,7 @@ create_historical_dyads_adaptive <- function(
 #===============================================================================
 # PARTE 4: FUNCIÓN PRINCIPAL
 #===============================================================================
+
 run_dyad_creation_adaptive <- function(
     samples,
     target_year,
