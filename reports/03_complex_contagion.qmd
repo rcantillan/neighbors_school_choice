@@ -26,9 +26,9 @@ title-block-style: default
 
 ## Introducción
 
-La difusión de comportamientos en entornos sociales ha sido tradicionalmente estudiada bajo el supuesto de la existencia de vínculos sociales directos entre los actores [@granovetter_strength_1973, @centola_how_2018]. Sin embargo, en contextos residenciales contemporáneos, las personas frecuentemente comparten espacios geográficos sin mantener interacciones sociales significativas. Este fenómeno plantea una pregunta fundamental: ¿cómo se propagan los comportamientos cuando no existen vínculos sociales directos?
+La difusión de comportamientos en entornos sociales ha sido tradicionalmente estudiada bajo el supuesto de la existencia de vínculos sociales directos entre los actores [@granovetter_strength_1973;  @centola_how_2018]. Sin embargo, en contextos residenciales contemporáneos, las personas frecuentemente comparten espacios geográficos sin mantener interacciones sociales significativas. Este fenómeno plantea una pregunta fundamental: ¿cómo se propagan los comportamientos cuando no existen vínculos sociales directos?
 
-La investigación reciente sobre contagios complejos [@centola_change_2021, @petrovic_where_2022] ha demostrado que ciertos comportamientos requieren refuerzo social múltiple para su adopción, mientras que desarrollos teóricos recientes [@aiyappa_emergence_2024] sugieren que estos patrones de contagio pueden emerger de la interacción entre factores individuales y contextuales. Nuestro estudio se enfoca en los aspectos observables y medibles de estos procesos en contextos residenciales.
+La investigación reciente sobre contagios complejos [@centola_change_2021; @petrovic_where_2022] ha demostrado que ciertos comportamientos requieren refuerzo social múltiple para su adopción, mientras que desarrollos teóricos recientes [@aiyappa_emergence_2024] sugieren que estos patrones de contagio pueden emerger de la interacción entre factores individuales y contextuales. Nuestro estudio se enfoca en los aspectos observables y medibles de estos procesos en contextos residenciales.
 
 ## Marco Teórico
 
