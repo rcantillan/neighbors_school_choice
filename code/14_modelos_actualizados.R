@@ -118,7 +118,7 @@ m7_post <- glm(mismo_post_post ~
                  ses_ego 
                + ses_distance 
                + I(ses_distance^2)
-               + distance 
+               + distance
                #sociodemographic
                + factor(sexo_ego) 
                + factor(sexo_alter) 
@@ -134,19 +134,27 @@ m7_post <- glm(mismo_post_post ~
                + factor(same_rbd) 
                + pct_same_as_gdemates    
                #school
-               + num_schools
-               + mean_quality
-               + std_quality
+               + num_school
+               + mean_math
+               + sd_math
+               + mean_reading
+               + sd_reading
                + pct_public
+               # school alter
+               + factor(dependency_post_alter)
+               + math_post_alter
+               + read_post_alter
+               + growth_math_post_alter
+               + growth_read_post_alter
+               + priority_student_post_alter
                # efectos fijos
                + factor(city)
                + factor(reference_year), 
-               family = "binomial", data = d)
+               family = "binomial", data = d_post)
 summary(m7_post)
-m7_post_robust <- get_dyadic_robust_se(m7_post)
+m7_post_robust <- get_dyadic_robust_se_post(m7_post)
 m7_post_robust
-
-
+glimpse(d_post)
 ##score-------------------------------------------------------------------------
 
 m1_post_score <- glm(mismo_post_post ~ 
@@ -270,25 +278,34 @@ m7_post_score <- glm(mismo_post_post ~
                + edad_ego 
                + edad_alter 
                #egohood
-               + ses_mean 
-               + ses_sd 
+               + score_mean 
+               + score_sd 
                + shannon_index 
                + network_size 
                + alter_apply_pct
                #school peers
                + factor(same_rbd) 
                + pct_same_as_gdemates    
-               #school
-               + num_schools
-               + mean_quality
-               + std_quality
+               ##school
+               + num_school
+               + mean_math
+               + sd_math
+               + mean_reading
+               + sd_reading
                + pct_public
+               # school alter
+               + factor(dependency_post_alter)
+               + math_post_alter
+               + read_post_alter
+               + growth_math_post_alter
+               + growth_read_post_alter
+               + priority_student_post_alter
                # efectos fijos
                + factor(city)
                + factor(reference_year), 
-               family = "binomial", data = d)
+               family = "binomial", data = d_post)
 summary(m7_post_score)
-m7_post_score_robust <- get_dyadic_robust_se(m7_post_score)
+m7_post_score_robust <- get_dyadic_robust_se_post(m7_post_score)
 m7_post_score_robust
 gc()
 
@@ -598,24 +615,33 @@ anio_modal <- 2021
 # GRÁFICO 1: MODELO SOCIOECONÓMICO PARA MISMO_POST_POST (modelo 7)
 # Datos para curva e intervalos de confianza
 newdata_curve_post <- data.frame(
-  ses_ego = mean(d$ses_ego, na.rm = TRUE), 
+  ses_ego = mean(d_post$ses_ego, na.rm = TRUE), 
   ses_distance = seq(-10, 10, length.out = 200),
-  distance = mean(d$distance, na.rm = TRUE),
+  distance = mean(d_post$distance, na.rm = TRUE),
   sexo_ego = 1,
   sexo_alter = 1,
-  edad_ego = mean(d$edad_ego, na.rm = TRUE),
-  edad_alter = mean(d$edad_alter, na.rm = TRUE),
-  ses_mean = mean(d$ses_mean, na.rm = TRUE),
-  ses_sd = mean(d$ses_sd, na.rm = TRUE),
-  shannon_index = mean(d$shannon_index, na.rm = TRUE),
-  network_size = mean(d$network_size, na.rm = TRUE),
+  edad_ego = mean(d_post$edad_ego, na.rm = TRUE),
+  edad_alter = mean(d_post$edad_alter, na.rm = TRUE),
+  ses_mean = mean(d_post$ses_mean, na.rm = TRUE),
+  ses_sd = mean(d_post$ses_sd, na.rm = TRUE),
+  shannon_index = mean(d_post$shannon_index, na.rm = TRUE),
+  network_size = mean(d_post$network_size, na.rm = TRUE),
   same_rbd = 1,
-  pct_same_as_gdemates = mean(d$pct_same_as_gdemates, na.rm = TRUE),
-  num_schools = mean(d$num_schools, na.rm = TRUE),
-  mean_quality = mean(d$mean_quality, na.rm = TRUE),
-  std_quality = mean(d$std_quality, na.rm = TRUE),
-  pct_public = mean(d$pct_public, na.rm = TRUE),
-  alter_apply_pct = mean(d$alter_apply_pct, na.rm = TRUE),
+  pct_same_as_gdemates = mean(d_post$pct_same_as_gdemates, na.rm = TRUE),
+  num_school = mean(d_post$num_school, na.rm = TRUE),
+  mean_math = mean(d_post$mean_quality, na.rm = TRUE),
+  sd_math = mean(d_post$std_quality, na.rm = TRUE),
+  mean_reading = mean(d_post$mean_quality, na.rm = TRUE),
+  sd_reading = mean(d_post$std_quality, na.rm = TRUE),
+  pct_public = mean(d_post$pct_public, na.rm = TRUE),
+  alter_apply_pct = mean(d_post$alter_apply_pct, na.rm = TRUE),
+  dependency_post_alter = 1,
+  math_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  read_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  growth_math_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  growth_read_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  priority_student_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  
   city = "santiago",
   reference_year = anio_modal
 )
@@ -630,27 +656,39 @@ newdata_curve_post$upper <- plogis(pred_post$fit + critval * pred_post$se.fit)
 # Encontrar el punto máximo para anotaciones
 max_point_post <- newdata_curve_post[which.max(newdata_curve_post$pred),]
 
+
+
+
 # GRÁFICO 2: MODELO SOCIOECONÓMICO PARA MISMO_POST_MATRIC (modelo 7 de matric)
 # Datos para curva e intervalos de confianza
 newdata_curve_matric <- data.frame(
-  ses_ego = mean(d$ses_ego, na.rm = TRUE), 
-  ses_distance = seq(-10, 10, length.out = 200),
-  distance = mean(d$distance, na.rm = TRUE),
+  average_score_z = mean(d_post$average_score_z, na.rm = TRUE), 
+  average_score_distance = seq(-10, 10, length.out = 200),
+  distance = mean(d_post$distance, na.rm = TRUE),
   sexo_ego = 1,
   sexo_alter = 1,
-  edad_ego = mean(d$edad_ego, na.rm = TRUE),
-  edad_alter = mean(d$edad_alter, na.rm = TRUE),
-  ses_mean = mean(d$ses_mean, na.rm = TRUE),
-  ses_sd = mean(d$ses_sd, na.rm = TRUE),
-  shannon_index = mean(d$shannon_index, na.rm = TRUE),
-  network_size = mean(d$network_size, na.rm = TRUE),
+  edad_ego = mean(d_post$edad_ego, na.rm = TRUE),
+  edad_alter = mean(d_post$edad_alter, na.rm = TRUE),
+  score_mean = mean(d_post$score_mean, na.rm = TRUE),
+  score_sd = mean(d_post$score_sd, na.rm = TRUE),
+  shannon_index = mean(d_post$shannon_index, na.rm = TRUE),
+  network_size = mean(d_post$network_size, na.rm = TRUE),
   same_rbd = 1,
-  pct_same_as_gdemates = mean(d$pct_same_as_gdemates, na.rm = TRUE),
-  num_schools = mean(d$num_schools, na.rm = TRUE),
-  mean_quality = mean(d$mean_quality, na.rm = TRUE),
-  std_quality = mean(d$std_quality, na.rm = TRUE),
-  pct_public = mean(d$pct_public, na.rm = TRUE),
-  alter_apply_pct = mean(d$alter_apply_pct, na.rm = TRUE),
+  pct_same_as_gdemates = mean(d_post$pct_same_as_gdemates, na.rm = TRUE),
+  num_school = mean(d_post$num_school, na.rm = TRUE),
+  mean_math = mean(d_post$mean_quality, na.rm = TRUE),
+  sd_math = mean(d_post$std_quality, na.rm = TRUE),
+  mean_reading = mean(d_post$mean_quality, na.rm = TRUE),
+  sd_reading = mean(d_post$std_quality, na.rm = TRUE),
+  pct_public = mean(d_post$pct_public, na.rm = TRUE),
+  alter_apply_pct = mean(d_post$alter_apply_pct, na.rm = TRUE),
+  dependency_post_alter = 1,
+  math_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  read_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  growth_math_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  growth_read_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  priority_student_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  
   city = "santiago",
   reference_year = anio_modal
 )
@@ -663,6 +701,8 @@ newdata_curve_matric$upper <- plogis(pred_matric$fit + critval * pred_matric$se.
 
 # Encontrar el punto máximo para anotaciones
 max_point_matric <- newdata_curve_matric[which.max(newdata_curve_matric$pred),]
+
+
 
 # Crear función para generar un gráfico consistente
 create_plot <- function(data, max_point, title, subtitle) {
@@ -743,6 +783,11 @@ p_post <- create_plot(
   "Probability of choosing the same post-secondary institution"
 )
 
+
+
+
+
+
 p_matric <- create_plot(
   newdata_curve_matric, 
   max_point_matric,
@@ -797,24 +842,33 @@ anio_modal <- 2021
 # GRÁFICO 1: MODELO SCORE PARA MISMO_POST_POST (modelo 7)
 # Datos para curva e intervalos de confianza
 newdata_curve_post_score <- data.frame(
-  average_score_z = mean(d$average_score_z, na.rm = TRUE), 
+  average_score_z = mean(d_post$average_score_z, na.rm = TRUE), 
   score_distance_z = seq(-10, 10, length.out = 200),
-  distance = mean(d$distance, na.rm = TRUE),
+  distance = mean(d_post$distance, na.rm = TRUE),
   sexo_ego = 1,
   sexo_alter = 1,
-  edad_ego = mean(d$edad_ego, na.rm = TRUE),
-  edad_alter = mean(d$edad_alter, na.rm = TRUE),
-  ses_mean = mean(d$ses_mean, na.rm = TRUE),
-  ses_sd = mean(d$ses_sd, na.rm = TRUE),
-  shannon_index = mean(d$shannon_index, na.rm = TRUE),
-  network_size = mean(d$network_size, na.rm = TRUE),
+  edad_ego = mean(d_post$edad_ego, na.rm = TRUE),
+  edad_alter = mean(d_post$edad_alter, na.rm = TRUE),
+  score_mean = mean(d_post$score_mean, na.rm = TRUE),
+  score_sd = mean(d_post$score_sd, na.rm = TRUE),
+  shannon_index = mean(d_post$shannon_index, na.rm = TRUE),
+  network_size = mean(d_post$network_size, na.rm = TRUE),
   same_rbd = 1,
-  pct_same_as_gdemates = mean(d$pct_same_as_gdemates, na.rm = TRUE),
-  num_schools = mean(d$num_schools, na.rm = TRUE),
-  mean_quality = mean(d$mean_quality, na.rm = TRUE),
-  std_quality = mean(d$std_quality, na.rm = TRUE),
-  pct_public = mean(d$pct_public, na.rm = TRUE),
-  alter_apply_pct = mean(d$alter_apply_pct, na.rm = TRUE),
+  pct_same_as_gdemates = mean(d_post$pct_same_as_gdemates, na.rm = TRUE),
+  num_school = mean(d_post$num_school, na.rm = TRUE),
+  mean_math = mean(d_post$mean_quality, na.rm = TRUE),
+  sd_math = mean(d_post$std_quality, na.rm = TRUE),
+  mean_reading = mean(d_post$mean_quality, na.rm = TRUE),
+  sd_reading = mean(d_post$std_quality, na.rm = TRUE),
+  pct_public = mean(d_post$pct_public, na.rm = TRUE),
+  alter_apply_pct = mean(d_post$alter_apply_pct, na.rm = TRUE),
+  dependency_post_alter = 1,
+  math_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  read_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  growth_math_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  growth_read_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  priority_student_post_alter = mean(d_post$mean_quality, na.rm = TRUE),
+  
   city = "santiago",
   reference_year = anio_modal
 )

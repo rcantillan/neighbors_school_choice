@@ -17,7 +17,27 @@ school_peers <- readRDS("~/Repositorios/neighbors_school_choice/data/school_peer
 scores_alters <- readRDS("~/Repositorios/neighbors_school_choice/data/scores_alters.rds")
 scores_egos <- readRDS("~/Repositorios/neighbors_school_choice/data/scores_egos.rds")
 ego_city <- read_csv("data/ego_city.csv")
+rbd_matric_alter <- readRDS("data/rbd_matric_alter.rds")
+rbd_post_alter <- readRDS("data/rbd_post_alter.rds")
+var_scores <- readRDS("data/var_scores.rds")
+popularity <- readRDS("~/Repositorios/neighbors_school_choice/data/popularity.rds")
+
+#glimpse(var_scores)
+var_scores <- var_scores %>% select(ego_id = mrun, 
+                                    mean_math, 
+                                    mean_reading, 
+                                    mean_growth_reading, 
+                                    mean_growth_math, 
+                                    num_schools = num_schools.x,
+                                    sd_math, 
+                                    sd_reading,
+                                    sd_growth_math, 
+                                    sd_growth_reading)
+
+## dyads source
 d <- readRDS("C:/Users/qramo/Desktop/dyads.rds")
+
+
 
 # join data
 d <- d %>% left_join(school_peers, by = c("ego_id", "alter_id", "reference_year"))
@@ -40,6 +60,20 @@ d <- d %>% left_join(priority_ego, by = "ego_id")
 d <- d %>% left_join(alter_apply_pct, by = c("ego_id", "alter_id", "reference_year"))
 
 
+d <- d %>% left_join(var_scores, by = "ego_id")
+d <- d %>% left_join(rbd_post_alter, by = c("reference_year", "rbd_post_alter"))
+d <- d %>% left_join(rbd_matric_alter, by = c("reference_year", "rbd_matric_alter"))
+glimpse(d)
+
+d <- d %>% rename(num_school=num_schools.y,
+                  num_school_alternativo = num_schools.x)
+
+table(d$dependency_matric_alter)
+table(d$dependency_post_alter)
+
+d <- d %>% select(-alter_apply_pct) %>% left_join(popularity, by = c("ego_id", "alter_id", "reference_year"))
+
+# Analysis -------------------------
 # crear variable score_distance 
 d$average_score_z <- scale(d$average_score)
 d$average_score_alter_z <- scale(d$average_score_alter)
@@ -60,11 +94,20 @@ hist(d$ses_distance_abs)
 hist(d$ses_distance)
 
 
+# crear sub_muestras
+d_post <- d
+d_matric <- d %>% filter(dependency_matric_alter %in% c(1,2))
+
+
 # correlación entre distancia SES y distancia de puntajes
 #cor(d$score_distance, d$ses_distance)
 
+d_post <- d_post %>% group_by(ego_id, reference_year) %>%
+  mutate(score_mean = mean(average_score_alter_z, na.rm = TRUE),
+         score_sd = sd(average_score_alter_z, na.rm = TRUE)) %>% 
+  ungroup()
 
-d <- d %>% group_by(ego_id, reference_year) %>%
+d_matric <- d_matric %>% group_by(ego_id, reference_year) %>%
   mutate(score_mean = mean(average_score_alter_z, na.rm = TRUE),
          score_sd = sd(average_score_alter_z, na.rm = TRUE)) %>% 
   ungroup()
@@ -100,11 +143,16 @@ crear_quintiles_ses <- function(data) {
 }
 
 # Aplicar la función a los datos
-d <- crear_quintiles_ses(d)
+d_post <- crear_quintiles_ses(d_post)
+d_matric <- crear_quintiles_ses(d_matric)
+
 
 # Verificar la distribución por año
-table(d$reference_year, d$ses_ego_quintil)
-table(d$reference_year, d$ses_alter_quintil)
+table(d_post$reference_year, d_post$ses_ego_quintil)
+table(d_post$reference_year, d_post$ses_alter_quintil)
+
+table(d_matric$reference_year, d_matric$ses_ego_quintil)
+table(d_matric$reference_year, d_matric$ses_alter_quintil)
 
 
 #-------------------------------------------------------------------------------
@@ -133,11 +181,15 @@ crear_quintiles_score <- function(data) {
 }
 
 # Aplicar la función a los datos
-d <- crear_quintiles_score(d)
+d_post <- crear_quintiles_score(d_post)
+d_matric <- crear_quintiles_score(d_matric)
+
 
 # Verificar la distribución por año
-table(d$reference_year, d$score_ego_quintil)
-table(d$reference_year, d$score_alter_quintil)
+table(d_post$reference_year, d_post$score_ego_quintil)
+table(d_post$reference_year, d_post$score_alter_quintil)
+table(d_matric$reference_year, d_matric$score_ego_quintil)
+table(d_matric$reference_year, d_matric$score_alter_quintil)
 
 # crear quintiles para la distancia de score
 #d <- d %>%
@@ -155,27 +207,55 @@ table(d$reference_year, d$score_alter_quintil)
 #----------------------------------------------
 
 # Crear identificadores únicos para ego y alter
-unique_ego_ids <- unique(d$ego_id)
-unique_alter_ids <- unique(d$alter_id)
+unique_ego_ids_post <- unique(d_post$ego_id)
+unique_alter_ids_post <- unique(d_post$alter_id)
 
-ego_clusters <- setNames(
-  as.character(seq_along(unique_ego_ids)), 
-  as.character(unique_ego_ids)
+ego_cluster_post <- setNames(
+  as.character(seq_along(unique_ego_ids_post)), 
+  as.character(unique_ego_ids_post)
 )
 
-alter_clusters <- setNames(
-  as.character(seq_along(unique_alter_ids) + length(unique_ego_ids)), 
-  as.character(unique_alter_ids)
+alter_clusters_post <- setNames(
+  as.character(seq_along(unique_alter_ids_post) + length(unique_ego_ids_post)), 
+  as.character(unique_alter_ids_post)
 )
+
 
 # Asignar clusters a los datos
-d$cluster_ego <- ego_clusters[as.character(d$ego_id)]
-d$cluster_alter <- alter_clusters[as.character(d$alter_id)]
+d_post$cluster_ego <- ego_cluster_post[as.character(d_post$ego_id)]
+d_post$cluster_alter <- alter_clusters_post[as.character(d_post$alter_id)]
+
+
+
+
+unique_ego_ids_matric <- unique(d_matric$ego_id)
+unique_alter_ids_matric <- unique(d_matric$alter_id)
+
+ego_cluster_matric <- setNames(
+  as.character(seq_along(unique_ego_ids_matric)), 
+  as.character(unique_ego_ids_matric)
+)
+
+alter_clusters_matric <- setNames(
+  as.character(seq_along(unique_alter_ids_matric) + length(unique_ego_ids_matric)), 
+  as.character(unique_alter_ids_matric)
+)
+
+d_matric$cluster_ego <- ego_cluster_matric[as.character(d_matric$ego_id)]
+d_matric$cluster_alter <- alter_clusters_matric[as.character(d_matric$alter_id)]
 
 # Función para calcular errores estándar robustos para datos diádicos
-get_dyadic_robust_se <- function(model) {
+get_dyadic_robust_se_post <- function(model) {
   vcov_matrix <- sandwich::vcovCL(model, 
-                                  cluster = cbind(d$cluster_ego, d$cluster_alter), 
+                                  cluster = cbind(d_post$cluster_ego, d_post$cluster_alter), 
+                                  multi0 = TRUE)
+  model_robust <- coeftest(model, vcov = vcov_matrix)
+  return(model_robust)
+}
+
+get_dyadic_robust_se_matric <- function(model) {
+  vcov_matrix <- sandwich::vcovCL(model, 
+                                  cluster = cbind(d_matric$cluster_ego, d_matric$cluster_alter), 
                                   multi0 = TRUE)
   model_robust <- coeftest(model, vcov = vcov_matrix)
   return(model_robust)
