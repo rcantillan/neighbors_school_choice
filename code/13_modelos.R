@@ -148,11 +148,11 @@ d_matric <- crear_quintiles_ses(d_matric)
 
 
 # Verificar la distribución por año
-table(d_post$reference_year, d_post$ses_ego_quintil)
-table(d_post$reference_year, d_post$ses_alter_quintil)
-
-table(d_matric$reference_year, d_matric$ses_ego_quintil)
-table(d_matric$reference_year, d_matric$ses_alter_quintil)
+#table(d_post$reference_year, d_post$ses_ego_quintil)
+#table(d_post$reference_year, d_post$ses_alter_quintil)
+#
+#table(d_matric$reference_year, d_matric$ses_ego_quintil)
+#table(d_matric$reference_year, d_matric$ses_alter_quintil)
 
 
 #-------------------------------------------------------------------------------
@@ -186,10 +186,10 @@ d_matric <- crear_quintiles_score(d_matric)
 
 
 # Verificar la distribución por año
-table(d_post$reference_year, d_post$score_ego_quintil)
-table(d_post$reference_year, d_post$score_alter_quintil)
-table(d_matric$reference_year, d_matric$score_ego_quintil)
-table(d_matric$reference_year, d_matric$score_alter_quintil)
+#table(d_post$reference_year, d_post$score_ego_quintil)
+#table(d_post$reference_year, d_post$score_alter_quintil)
+#table(d_matric$reference_year, d_matric$score_ego_quintil)
+#table(d_matric$reference_year, d_matric$score_alter_quintil)
 
 # crear quintiles para la distancia de score
 #d <- d %>%
@@ -207,6 +207,7 @@ table(d_matric$reference_year, d_matric$score_alter_quintil)
 #----------------------------------------------
 
 # Crear identificadores únicos para ego y alter
+# d_post 
 unique_ego_ids_post <- unique(d_post$ego_id)
 unique_alter_ids_post <- unique(d_post$alter_id)
 
@@ -226,8 +227,7 @@ d_post$cluster_ego <- ego_cluster_post[as.character(d_post$ego_id)]
 d_post$cluster_alter <- alter_clusters_post[as.character(d_post$alter_id)]
 
 
-
-
+# d_matric
 unique_ego_ids_matric <- unique(d_matric$ego_id)
 unique_alter_ids_matric <- unique(d_matric$alter_id)
 
@@ -262,7 +262,7 @@ get_dyadic_robust_se_matric <- function(model) {
 }
 
 ################################################################################
-# MODELOS
+# MODELOS ORIGINALES
 ################################################################################
 
 # M1: SES ego y distancia SES
