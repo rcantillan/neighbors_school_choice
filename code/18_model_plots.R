@@ -816,30 +816,29 @@ ggsave("all_quintiles_heatmaps.png", p_combined_all, width = 18, height = 16, dp
 #-------------------------------------------------------------------------------
 # Modificar los gráficos para usar escala de grises
 #-------------------------------------------------------------------------------
-
 p_post_ses <- ggplot(pred_data_heatmap_post_ses, 
                      aes(x = ses_ego_quintil, y = ses_alter_quintil, fill = probability)) +
   geom_tile(color = "white", linewidth = 0.3) +
-  # Escala de grises
-  scale_fill_gradient2(low = "white", mid = "#BBBBBB", high = "#333333", 
+  # Escala de grises más clara
+  scale_fill_gradient2(low = "white", mid = "#CCCCCC", high = "#777777", 
                        midpoint = min(pred_data_heatmap_post_ses$probability) + 
                          (max(pred_data_heatmap_post_ses$probability) - min(pred_data_heatmap_post_ses$probability))/2,
                        labels = scales::percent_format(accuracy = 0.1)) +
   geom_text(aes(label = scales::percent(probability, accuracy = 0.1),
-                color = ifelse(probability > 0.15, "white", "black")), 
+                color = ifelse(probability > 0.25, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
   labs(title = "Probability of Applying to the Same Institution",
        #subtitle = paste0("Application (mismo_post_post) - Reference year: ", modal_year),
-       x = "Ego's SES Quintile", 
-       y = "Alter's SES Quintile",
+       x = "", 
+       y = "",
        fill = "Probability") +
   theme_minimal(base_size = 14) +
   theme(
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "none",
+    legend.position = "right",
     panel.grid = element_blank(),
     plot.title = element_text(face = "bold", hjust = 0, size = 16, margin = margin(b = 10)),
     plot.subtitle = element_text(hjust = 0, color = "#505050", size = 13, margin = margin(b = 15)),
@@ -852,13 +851,13 @@ p_post_ses <- ggplot(pred_data_heatmap_post_ses,
 p_matric_ses <- ggplot(pred_data_heatmap_matric_ses, 
                        aes(x = ses_ego_quintil, y = ses_alter_quintil, fill = probability)) +
   geom_tile(color = "white", linewidth = 0.3) +
-  # Escala de grises
-  scale_fill_gradient2(low = "white", mid = "#BBBBBB", high = "#333333", 
+  # Escala de grises más clara
+  scale_fill_gradient2(low = "white", mid = "#CCCCCC", high = "#777777", 
                        midpoint = min(pred_data_heatmap_matric_ses$probability) + 
                          (max(pred_data_heatmap_matric_ses$probability) - min(pred_data_heatmap_matric_ses$probability))/2,
                        labels = scales::percent_format(accuracy = 0.1)) +
   geom_text(aes(label = scales::percent(probability, accuracy = 0.1),
-                color = ifelse(probability > 0.15, "white", "black")), 
+                color = ifelse(probability > 0.25, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
   labs(title = "Probability of Enrolling in the Same Institution",
@@ -872,7 +871,7 @@ p_matric_ses <- ggplot(pred_data_heatmap_matric_ses,
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "right",
+    legend.position = "none",
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 11),
     panel.grid = element_blank(),
@@ -887,26 +886,26 @@ p_matric_ses <- ggplot(pred_data_heatmap_matric_ses,
 p_post_score <- ggplot(pred_data_heatmap_post_score, 
                        aes(x = score_ego_quintil, y = score_alter_quintil, fill = probability)) +
   geom_tile(color = "white", linewidth = 0.3) +
-  # Escala de grises
-  scale_fill_gradient2(low = "white", mid = "#BBBBBB", high = "#333333", 
+  # Escala de grises más clara
+  scale_fill_gradient2(low = "white", mid = "#CCCCCC", high = "#777777", 
                        midpoint = min(pred_data_heatmap_post_score$probability) + 
                          (max(pred_data_heatmap_post_score$probability) - min(pred_data_heatmap_post_score$probability))/2,
                        labels = scales::percent_format(accuracy = 0.1)) +
   geom_text(aes(label = scales::percent(probability, accuracy = 0.1),
-                color = ifelse(probability > 0.15, "white", "black")), 
+                color = ifelse(probability > 0.25, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
-  labs(title = "Probability of Applying to the Same Institution by Academic Score Quintiles",
+  labs(title = "Probability of Applying to the Same Institution",
        #subtitle = paste0("Application (mismo_post_post) - Reference year: ", modal_year),
-       x = "Ego's Academic Score Quintile", 
-       y = "Alter's Academic Score Quintile",
+       x = "", 
+       y = "",
        fill = "Probability") +
   theme_minimal(base_size = 14) +
   theme(
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "none",
+    legend.position = "right",
     panel.grid = element_blank(),
     plot.title = element_text(face = "bold", hjust = 0, size = 16, margin = margin(b = 10)),
     plot.subtitle = element_text(hjust = 0, color = "#505050", size = 13, margin = margin(b = 15)),
@@ -919,16 +918,16 @@ p_post_score <- ggplot(pred_data_heatmap_post_score,
 p_matric_score <- ggplot(pred_data_heatmap_matric_score, 
                          aes(x = score_ego_quintil, y = score_alter_quintil, fill = probability)) +
   geom_tile(color = "white", linewidth = 0.3) +
-  # Escala de grises
-  scale_fill_gradient2(low = "white", mid = "#BBBBBB", high = "#333333", 
+  # Escala de grises más clara
+  scale_fill_gradient2(low = "white", mid = "#CCCCCC", high = "#777777", 
                        midpoint = min(pred_data_heatmap_matric_score$probability) + 
                          (max(pred_data_heatmap_matric_score$probability) - min(pred_data_heatmap_matric_score$probability))/2,
                        labels = scales::percent_format(accuracy = 0.1)) +
   geom_text(aes(label = scales::percent(probability, accuracy = 0.1),
-                color = ifelse(probability > 0.15, "white", "black")), 
+                color = ifelse(probability > 0.25, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
-  labs(title = "Probability of Enrolling in the Same Institution by Academic Score Quintiles",
+  labs(title = "Probability of Enrolling in the Same Institution",
        #subtitle = paste0("Enrollment (mismo_post_matric) - Reference year: ", modal_year),
        x = "Ego's Academic Score Quintile", 
        y = "Alter's Academic Score Quintile",
@@ -939,7 +938,7 @@ p_matric_score <- ggplot(pred_data_heatmap_matric_score,
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "right",
+    legend.position = "none",
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 11),
     panel.grid = element_blank(),
@@ -997,8 +996,6 @@ p_combined_all <- (p_post_ses + p_post_score) /
 ggsave("ses_quintiles_heatmaps_bw.png", p_combined_ses, width = 12, height = 14, dpi = 400)
 ggsave("academic_quintiles_heatmaps_bw.png", p_combined_score, width = 12, height = 14, dpi = 400)
 ggsave("all_quintiles_heatmaps_bw.png", p_combined_all, width = 18, height = 16, dpi = 400)
-
-
 
 
 
