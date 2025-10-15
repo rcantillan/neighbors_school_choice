@@ -1,3 +1,4 @@
+
 library(dplyr)
 library(leaflet)
 library(sf)
@@ -5,8 +6,110 @@ library(geosphere)
 library(htmltools)
 library(RColorBrewer) # <--- LIBRERÍA AÑADIDA
 
-# Cargar tus datos 
-# d_with_spatial 
+
+# Data
+
+# Primero, verificar las columnas disponibles
+cat("Columnas en sample_2022:\n")
+print(colnames(sample_2022))
+
+# 1. Combinar todos los datasets anuales en uno solo
+spatial_data <- bind_rows(
+  sample_2019 %>% mutate(year = 2019),
+  sample_2020 %>% mutate(year = 2020), 
+  sample_2021 %>% mutate(year = 2021),
+  sample_2022 %>% mutate(year = 2022)
+) %>%
+  select(mrun, year, lat_con_error, lon_con_error, comuna, nom_comuna, 
+         geocodigo, city, density, density_category)
+
+cat("Filas en spatial_data:", nrow(spatial_data), "\n")
+cat("Columnas en spatial_data:", colnames(spatial_data), "\n")
+
+# 2. Crear dataset para egos (siempre año 2022)
+ego_spatial <- spatial_data %>%
+  filter(year == 2022) %>%
+  select(mrun, lat_con_error, lon_con_error, comuna, nom_comuna, 
+         geocodigo, city, density, density_category) %>%
+  rename(
+    ego_id = mrun,
+    ego_lat = lat_con_error,
+    ego_lon = lon_con_error,
+    ego_comuna = comuna,
+    ego_nom_comuna = nom_comuna,
+    ego_geocodigo = geocodigo,
+    ego_city = city,
+    ego_density = density,
+    ego_density_category = density_category
+  )
+
+cat("Columnas en ego_spatial:", colnames(ego_spatial), "\n")
+cat("Filas en ego_spatial:", nrow(ego_spatial), "\n")
+
+# 3. Crear dataset para alters (según reference_year)
+alter_spatial <- spatial_data %>%
+  select(mrun, year, lat_con_error, lon_con_error, comuna, nom_comuna, 
+         geocodigo, city, density, density_category) %>%
+  rename(
+    alter_id = mrun,
+    reference_year = year,
+    alter_lat = lat_con_error,
+    alter_lon = lon_con_error,
+    alter_comuna = comuna,
+    alter_nom_comuna = nom_comuna,
+    alter_geocodigo = geocodigo,
+    alter_city = city,
+    alter_density = density,
+    alter_density_category = density_category
+  )
+
+cat("Columnas en alter_spatial:", colnames(alter_spatial), "\n")
+cat("Filas en alter_spatial:", nrow(alter_spatial), "\n")
+
+# 4. Hacer los joins al dataset principal
+cat("Filas en d original:", nrow(d), "\n")
+
+# Join para egos (siempre 2022)
+d_step1 <- d %>%
+  left_join(ego_spatial, by = "ego_id")
+
+cat("Filas después del join de egos:", nrow(d_step1), "\n")
+cat("Egos con coordenadas después del join:", sum(!is.na(d_step1$ego_lat)), "\n")
+
+# Join para alters (según reference_year)  
+d_with_spatial <- d_step1 %>%
+  left_join(alter_spatial, by = c("alter_id", "reference_year"))
+
+cat("Filas después del join de alters:", nrow(d_with_spatial), "\n")
+cat("Alters con coordenadas después del join:", sum(!is.na(d_with_spatial$alter_lat)), "\n")
+
+# 5. Verificar las columnas que se crearon
+cat("Columnas espaciales creadas:\n")
+spatial_cols <- colnames(d_with_spatial)[grepl("ego_|alter_", colnames(d_with_spatial))]
+print(spatial_cols)
+
+# 6. Verificar el resultado (usar las columnas que realmente existen)
+if(length(spatial_cols) > 0) {
+  d_with_spatial %>%
+    select(ego_id, alter_id, reference_year, all_of(spatial_cols)) %>%
+    head(5) %>%
+    print()
+} else {
+  cat("No se crearon columnas espaciales. Verificando el join...\n")
+}
+
+# 7. Estadísticas finales
+cat("\n=== RESUMEN ===\n")
+cat("Filas originales:", nrow(d), "\n")
+cat("Filas finales:", nrow(d_with_spatial), "\n")
+if("ego_lat" %in% colnames(d_with_spatial)) {
+  cat("Egos con coordenadas:", sum(!is.na(d_with_spatial$ego_lat)), "\n")
+}
+if("alter_lat" %in% colnames(d_with_spatial)) {
+  cat("Alters con coordenadas:", sum(!is.na(d_with_spatial$alter_lat)), "\n")
+}
+
+
 
 # --- Preparación de Datos ---
 d_with_spatial <- d_with_spatial %>%

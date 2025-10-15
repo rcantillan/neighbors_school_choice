@@ -111,10 +111,10 @@ p1_stacked <- ggplot(composition_long, aes(x = factor(ses_ego_quintile), y = avg
   geom_bar(stat = "identity", position = "stack", color = "white", size = 0.3) +
   scale_fill_manual(values = grays_palette, name = "SES Alter") +
   labs(
-    title = "Composición Social de Egohoods",
-    subtitle = "Distribución de alters por quintil SES según quintil del ego",
-    x = "Quintil SES del Ego",
-    y = "Porcentaje de Alters (%)"
+    title = "",
+    subtitle = "Alter´s distribution by SES Ego quintile",
+    x = "SES Ego Quintile",
+    y = "Alters percentage (%)"
   ) +
   scale_y_continuous(labels = percent_format(scale = 1), limits = c(0, 100)) +
   theme_clean +
@@ -606,16 +606,22 @@ print("=== GRÁFICO 3: DISTRIBUCIÓN CATEGÓRICA ===")
 print(p3_categorical)
 
 # Visualización 4: Distribución por separado (facetada)
+desc_categorical <- desc_categorical %>% 
+  mutate(variable =case_when(
+    variable == "Post-Post" ~ "Same top choice",
+    variable == "Post-Matrícula" ~ "Same as enrolled"
+  ))
+
 p4_faceted <- ggplot(desc_categorical, aes(x = cat_post_post, y = porcentaje)) +
   geom_bar(stat = "identity", fill = "gray50", alpha = 0.8, color = "white", size = 0.5) +
   geom_text(aes(label = paste0(round(porcentaje, 1), "%")), 
             vjust = -0.3, size = 5, color = "gray20") +
   facet_wrap(~ variable, scales = "free_y") +
   labs(
-    title = "Distribución Categórica por Variable",
-    subtitle = "Porcentaje de egos según número de alters con elección coincidente",
-    x = "Número de Alters con Misma Elección",
-    y = "Porcentaje de Egos (%)"
+    title = "",
+    subtitle = "Proportion of similar school choice",
+    x = "Alter's with the same choice",
+    y = "Proportion of Ego's (%)"
   ) +
   scale_y_continuous(labels = percent_format(scale = 1)) +
   theme_clean +

@@ -346,80 +346,60 @@ create_plot_score <- function(data, max_point, title, subtitle) {
 p_post_ses <- create_plot_ses(
   newdata_curve_post, 
   max_point_post,
-  "Same Post-Secondary Institution Choice",
-  "Predicted probability of applying to the same institution"
+  "",
+  "Predicted probability of applying to alter's top choice"
 )
 
 p_matric_ses <- create_plot_ses(
   newdata_curve_matric, 
   max_point_matric,
-  "Same Post-Secondary Institution Enrollment",
-  "Predicted probability of enrolling in the same institution"
+  "",
+  "Predicted probability of applying to alter's enrolled school"
 )
 
 # Crear los gráficos individuales para Score
 p_post_score <- create_plot_score(
   newdata_curve_post_score, 
   max_point_post_score,
-  "Same Post-Secondary Institution Choice",
-  "Predicted probability of applying to the same institution"
+  "",
+  "Predicted probability of applying to alter's top choice"
 )
 
 p_matric_score <- create_plot_score(
   newdata_curve_matric_score, 
   max_point_matric_score,
-  "Same Post-Secondary Institution Enrollment",
-  "Predicted probability of enrolling in the same institution"
+  "",
+  "Predicted probability of applying to alter's enrolled school"
 )
 
 # Crear combinación para SES (horizontal)
 p_combined_ses_horizontal <- p_post_ses + p_matric_ses + 
   plot_layout(ncol = 2) +
   plot_annotation(
-    title = "Socioeconomic Distance Effects on Educational Trajectories",
+    title = "",
     theme = theme(
       plot.title = element_text(face = "bold", size = 20, hjust = 0, margin = margin(b = 15)),
       plot.caption = element_text(size = 12, color = "#505050", hjust = 0, margin = margin(t = 15))
     ),
-    caption = "Note: The vertical dashed line indicates equal socioeconomic status. Curves derived from models with 95% confidence intervals.\nFull control: socioeconomic, demographic, network and institutional variables. Model 8 (2021)."
+    caption = "Note: The vertical dashed line indicates equal socioeconomic status. Curves derived from models with 95% confidence intervals. All controls included."
   )
 
 # Crear combinación para Score (horizontal)
 p_combined_score_horizontal <- p_post_score + p_matric_score + 
   plot_layout(ncol = 2) +
   plot_annotation(
-    title = "Academic Performance Distance Effects on Educational Trajectories",
+    title = "",
     theme = theme(
       plot.title = element_text(face = "bold", size = 20, hjust = 0, margin = margin(b = 15)),
       plot.caption = element_text(size = 12, color = "#505050", hjust = 0, margin = margin(t = 15))
     ),
-    caption = "Note: The vertical dashed line indicates equal academic performance. Curves derived from models with 95% confidence intervals.\nFull control: socioeconomic, demographic, network and institutional variables. Model 8 (2021)."
+    caption = "Note: The vertical dashed line indicates equal socioeconomic status. Curves derived from models with 95% confidence intervals. All controls included."
   )
 
-# Crear 2x2 grid con todos los gráficos
-p_combined_all <- (p_post_ses + p_post_score) / (p_matric_ses + p_matric_score) +
-  plot_layout(ncol = 2) +
-  plot_annotation(
-    title = "Distance Effects on Educational Trajectories: Socioeconomic vs. Academic Performance",
-    theme = theme(
-      plot.title = element_text(face = "bold", size = 20, hjust = 0, margin = margin(b = 15)),
-      plot.caption = element_text(size = 12, color = "#505050", hjust = 0, margin = margin(t = 15))
-    ),
-    caption = "Note: The vertical dashed lines indicate equal status (socioeconomic or academic). Curves derived from fully specified models with 95% confidence intervals.\nAll models include comprehensive controls: socioeconomic, demographic, network and institutional variables. Model 8 (2021)."
-  )
 
 # Guardar todas las opciones con alta resolución
 ggsave("ses_distance_effects_model8.png", p_combined_ses_horizontal, width = 16, height = 8, dpi = 400)
 ggsave("academic_distance_effects_model8.png", p_combined_score_horizontal, width = 16, height = 8, dpi = 400)
-ggsave("all_distance_effects_model8.png", p_combined_all, width = 18, height = 16, dpi = 400)
-
-
-
-
-
-
-
-
 
 
 
@@ -564,6 +544,19 @@ pred_data_heatmap_post_ses$probability <- predict(m8_post_q,
                                                   newdata = pred_data_heatmap_post_ses, 
                                                   type = "response")
 
+
+pred_data_heatmap_post_ses <- pred_data_heatmap_post_ses %>% 
+  mutate(ses_ego_quintil = case_when(ses_ego_quintil == "Q1 (más bajo)" ~ "Q1 (lowest)",
+                                     ses_ego_quintil == "Q2" ~ "Q2",
+                                     ses_ego_quintil == "Q3" ~ "Q3",
+                                     ses_ego_quintil == "Q4" ~ "Q4",
+                                     ses_ego_quintil == "Q5 (más alto)" ~ "Q5 (highest)"),
+         ses_alter_quintil = case_when(ses_alter_quintil == "Q1 (más bajo)" ~ "Q1 (lowest)",
+                                       ses_alter_quintil == "Q2" ~ "Q2",
+                                       ses_alter_quintil == "Q3" ~ "Q3",
+                                       ses_alter_quintil == "Q4" ~ "Q4",
+                                       ses_alter_quintil == "Q5 (más alto)" ~ "Q5 (highest)"))
+
 # Crear heatmap mejorado
 p_post_ses <- ggplot(pred_data_heatmap_post_ses, 
                      aes(x = ses_ego_quintil, y = ses_alter_quintil, fill = probability)) +
@@ -583,8 +576,8 @@ p_post_ses <- ggplot(pred_data_heatmap_post_ses,
   scale_color_identity() +
   
   # Etiquetas mejoradas
-  labs(title = "Probability of Applying to the Same Institution",
-       #subtitle = paste0("Application (mismo_post_post) - Reference year: ", modal_year),
+  labs(title = "",
+       subtitle = "Predicted probability of applying to alter's top choice",
        x = "Ego's SES Quintile", 
        y = "Alter's SES Quintile",
        fill = "Probability",
@@ -596,7 +589,7 @@ p_post_ses <- ggplot(pred_data_heatmap_post_ses,
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "right",
+    legend.position = "none",
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 11),
     panel.grid = element_blank(),
@@ -623,6 +616,20 @@ pred_data_heatmap_post_score$probability <- predict(m8_post_score_q,
                                                     newdata = pred_data_heatmap_post_score, 
                                                     type = "response")
 
+
+#pred_data_heatmap_post_score <- pred_data_heatmap_post_score %>% 
+#  mutate(score_ego_quintil = case_when(score_ego_quintil == "Q1 (más bajo)" ~ "Q1 (lowest)",
+#                                       score_ego_quintil == "Q2" ~ "Q2",
+#                                       score_ego_quintil == "Q3" ~ "Q3",
+#                                       score_ego_quintil == "Q4" ~ "Q4",
+#                                       score_ego_quintil == "Q5 (más alto)" ~ "Q5 (highest)"),
+#         score_alter_quintil = case_when(score_alter_quintil == "Q1 (más bajo)" ~ "Q1 (lowest)",
+#                                         score_alter_quintil == "Q2" ~ "Q2",
+#                                         score_alter_quintil == "Q3" ~ "Q3",
+#                                         score_alter_quintil == "Q4" ~ "Q4",
+#                                         score_alter_quintil == "Q5 (más alto)" ~ "Q5 (highest)"))
+#
+
 # Crear heatmap mejorado
 p_post_score <- ggplot(pred_data_heatmap_post_score, 
                        aes(x = score_ego_quintil, y = score_alter_quintil, fill = probability)) +
@@ -635,8 +642,8 @@ p_post_score <- ggplot(pred_data_heatmap_post_score,
                 color = ifelse(probability > 0.15, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
-  labs(title = "Probability of Applying to the Same Institution",
-       #subtitle = paste0("Application (mismo_post_post) - Reference year: ", modal_year),
+  labs(title = "",
+       subtitle = "Predicted probability of applying to alter's top choice",
        x = "Ego's Academic Score Quintile", 
        y = "Alter's Academic Score Quintile",
        fill = "Probability",
@@ -646,7 +653,7 @@ p_post_score <- ggplot(pred_data_heatmap_post_score,
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "right",
+    legend.position = "none",
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 11),
     panel.grid = element_blank(),
@@ -673,6 +680,19 @@ pred_data_heatmap_matric_ses$probability <- predict(m8_matric_q,
                                                     newdata = pred_data_heatmap_matric_ses, 
                                                     type = "response")
 
+pred_data_heatmap_matric_ses <- pred_data_heatmap_matric_ses %>% 
+  mutate(ses_ego_quintil = case_when(ses_ego_quintil == "Q1 (más bajo)" ~ "Q1 (lowest)",
+                                     ses_ego_quintil == "Q2" ~ "Q2",
+                                     ses_ego_quintil == "Q3" ~ "Q3",
+                                     ses_ego_quintil == "Q4" ~ "Q4",
+                                     ses_ego_quintil == "Q5 (más alto)" ~ "Q5 (highest)"),
+         ses_alter_quintil = case_when(ses_alter_quintil == "Q1 (más bajo)" ~ "Q1 (lowest)",
+                                       ses_alter_quintil == "Q2" ~ "Q2",
+                                       ses_alter_quintil == "Q3" ~ "Q3",
+                                       ses_alter_quintil == "Q4" ~ "Q4",
+                                       ses_alter_quintil == "Q5 (más alto)" ~ "Q5 (highest)"))
+
+
 # Crear heatmap mejorado
 p_matric_ses <- ggplot(pred_data_heatmap_matric_ses, 
                        aes(x = ses_ego_quintil, y = ses_alter_quintil, fill = probability)) +
@@ -686,18 +706,18 @@ p_matric_ses <- ggplot(pred_data_heatmap_matric_ses,
                 color = ifelse(probability > 0.15, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
-  labs(title = "Probability of Enrolling in the Same Institution",
-       #subtitle = paste0("Enrollment (mismo_post_matric) - Reference year: ", modal_year),
+  labs(title = "",
+       subtitle = "Predicted probability of applying to alter's enrolled school",
        x = "Ego's SES Quintile", 
        y = "Alter's SES Quintile",
        fill = "Probability",
-       caption = "Note: Values based on Model 8 with interactions between SES quintiles.") +
+       caption = "") +
   theme_minimal(base_size = 14) +
   theme(
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "right",
+    legend.position = "none",
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 11),
     panel.grid = element_blank(),
@@ -736,8 +756,8 @@ p_matric_score <- ggplot(pred_data_heatmap_matric_score,
                 color = ifelse(probability > 0.15, "white", "black")), 
             size = 5, fontface = "bold") +
   scale_color_identity() +
-  labs(title = "Probability of Enrolling in the Same Institution",
-       #subtitle = paste0("Enrollment (mismo_post_matric) - Reference year: ", modal_year),
+  labs(title = "",
+       subtitle = "Predicted probability of applying to alter's enrolled school",
        x = "Ego's Academic Score Quintile", 
        y = "Alter's Academic Score Quintile",
        fill = "Probability",
@@ -747,7 +767,7 @@ p_matric_score <- ggplot(pred_data_heatmap_matric_score,
     axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold", size = 12),
     axis.text.y = element_text(face = "bold", size = 12),
     axis.title = element_text(size = 14, face = "bold"),
-    legend.position = "right",
+    legend.position = "none",
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 11),
     panel.grid = element_blank(),
@@ -764,45 +784,33 @@ p_matric_score <- ggplot(pred_data_heatmap_matric_score,
 #-------------------------------------------------------------------------------
 
 # Modificar el tema de los gráficos individuales para quitar las leyendas
-p_post_ses <- p_post_ses + theme(legend.position = "none")
-p_matric_ses <- p_matric_ses + theme(legend.position = "right")
+#p_post_ses <- p_post_ses + theme(legend.position = "none")
+#p_matric_ses <- p_matric_ses + theme(legend.position = "right")
+#p_post_score <- p_post_score + theme(legend.position = "none")
+#p_matric_score <- p_matric_score + theme(legend.position = "right")
 
 # Crear combinación de gráficos para SES con una sola leyenda
 p_combined_ses <- p_post_ses / p_matric_ses +
   plot_layout(heights = c(1, 1)) +
   plot_annotation(
-    title = "Socioeconomic Stratification Effects on Educational Trajectories",
+    title = "",
     theme = theme(
       plot.title = element_text(face = "bold", size = 20, hjust = 0, margin = margin(b = 15)),
       plot.caption = element_text(size = 11, color = "#505050", hjust = 0, margin = margin(t = 15))
     ),
-    caption = "Note: Values represent predicted probabilities from model with all controls and interaction terms between SES quintiles.\nReference year 2021."
+    caption = ""
   )
 
 # Crear combinación de gráficos para Score académico
 p_combined_score <- p_post_score / p_matric_score +
-  plot_layout(guides = "collect") +
+  plot_layout(heights = c(1, 1)) +
   plot_annotation(
-    title = "Academic Stratification Effects on Educational Trajectories",
+    title = "",
     theme = theme(
       plot.title = element_text(face = "bold", size = 20, hjust = 0, margin = margin(b = 15)),
       plot.caption = element_text(size = 11, color = "#505050", hjust = 0, margin = margin(t = 15))
     ),
-    caption = "Note: Values represent predicted probabilities from model with all controls and interaction terms between academic score quintiles.\nReference year 2021."
-  )
-
-# Crear combinación 2x2 con todos los gráficos
-p_combined_all <- (p_post_ses + p_post_score) / (p_matric_ses + p_matric_score) +
-  plot_layout(guides = "collect") +
-  plot_annotation(
-    title = "Stratification Effects on Educational Trajectories",
-    subtitle = "Comparison between socioeconomic and academic performance stratification",
-    theme = theme(
-      plot.title = element_text(face = "bold", size = 22, hjust = 0, margin = margin(b = 10)),
-      plot.subtitle = element_text(size = 16, hjust = 0, color = "#404040", margin = margin(b = 15)),
-      plot.caption = element_text(size = 11, color = "#505050", hjust = 0, margin = margin(t = 15))
-    ),
-    caption = "Note: Values represent predicted probabilities from models with all controls and interaction terms between quintiles.\nReference year 2021. Application (mismo_post_post) vs. Enrollment (mismo_post_matric)."
+    caption = ""
   )
 
 # Guardar todas las opciones con alta resolución

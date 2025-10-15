@@ -1,4 +1,3 @@
-
 library(tidyverse)
 library(sandwich)
 library(lmtest)
@@ -35,7 +34,7 @@ var_scores <- var_scores %>% select(ego_id = mrun,
                                     sd_growth_reading)
 
 ## dyads source
-d <- readRDS("C:/Users/qramo/Desktop/dyads.rds")
+d <- readRDS("C:/Users/Quentin Ramond.DESKTOP-P8TH131.000/Desktop/dyads.rds")
 
 
 
@@ -93,6 +92,7 @@ d <- d %>% mutate(ses_distance_abs = abs(ses_ego - ses_alter))
 hist(d$ses_distance_abs)
 hist(d$ses_distance)
 
+#save(d, file = "C:/Users/qramo/Desktop/d.RData")
 
 # crear sub_muestras
 d_post <- d
@@ -260,6 +260,9 @@ get_dyadic_robust_se_matric <- function(model) {
   model_robust <- coeftest(model, vcov = vcov_matrix)
   return(model_robust)
 }
+
+#save(d_with_spatial)
+#save(d_with_spatial, file = "d_with_spatial.RData")
 
 ################################################################################
 # MODELOS ORIGINALES
