@@ -6,6 +6,7 @@ library(broom)
 library(glue)
 library(texreg)
 library(marginaleffects)
+library(tidyverse)
 
 
 # =========================================================
