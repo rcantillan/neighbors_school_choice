@@ -884,7 +884,6 @@ tune_tbl <- tune_tau_ksoft(
 tune_tbl %>% arrange(abs(beta_logdens), cv_range, pct_ge_cap) %>% head(12)
 ```
 
-> Puedes escoger la mejor combinación y **volver a aplicar** `apply_mass_cut()` con esos parámetros.
 
 ---
 
@@ -894,8 +893,4 @@ tune_tbl %>% arrange(abs(beta_logdens), cv_range, pct_ge_cap) %>% head(12)
 # Guardar objetos finales
 # readr::write_rds(res_final$dyads, "dyads_final.rds", compress = "gz")
 # readr::write_rds(res_final$sizes, "sizes_final.rds", compress = "gz")
-```
-
-> ¡Listo! Con esto tienes un pipeline completo, reproducible y diagnosticable
-> para redes egocéntricas **comparables** entre contextos heterogéneos en densidad.
 ```
