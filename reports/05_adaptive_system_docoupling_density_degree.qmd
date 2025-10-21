@@ -725,7 +725,7 @@ res_base <- run_compensated_pipeline(
   r_min = 320, r_max = 1150,
   gamma_shape = 2.2, eta_mix = 0.992,
   k_min = k_min_default, k_cap = 40,
-  sample_rate = 0.05
+  sample_rate = 0.5
 )
 
 cat("\n=== DIAGNÓSTICOS PRE-τ ===\n")
@@ -867,20 +867,19 @@ ggplot(res_base$sizes, aes(x = density_ego, y = ego_radius)) +
 
 ## 4. Tuning fino (opcional)
 
-> Si `β` quedó levemente distinto de 0 o algún quintil muestra CV alto, usa el **tuner**.
+> Si `β` quedó levemente distinto de 0 o algún quintil muestra CV alto, usar el **tuner**.
 
 ```{r}
 tune_tbl <- tune_tau_ksoft(
-  res_obj    = res_final,
-  q_lu       = q_lu,
-  base_tau   = c(Q1 = 0.93, Q2 = 0.945, Q3 = 0.955, Q4 = 0.965, Q5 = 0.975),
-  base_soft  = c(Q1 = 25,   Q2 = 25,    Q3 = 24,    Q4 = 24,    Q5 = 24),
+  res_obj   = res_base,   # <-- pre-τ
+  q_lu      = q_lu,
+  base_tau  = tau_map_default,
+  base_soft = k_soft_default,
   deltas_tau = c(-0.005, 0, 0.005),
-  deltas_soft= c(0, 1, 2),
-  k_min      = 15,
-  k_cap      = 40,
-  q_cap      = 0.85
+  deltas_soft = c(0, 1, 2),
+  k_min = 15, k_cap = 40, q_cap = 0.85
 )
+
 tune_tbl %>% arrange(abs(beta_logdens), cv_range, pct_ge_cap) %>% head(12)
 ```
 
