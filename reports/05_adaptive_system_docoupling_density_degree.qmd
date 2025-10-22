@@ -725,7 +725,7 @@ res_base <- run_compensated_pipeline(
   r_min = 320, r_max = 1150,
   gamma_shape = 2.2, eta_mix = 0.992,
   k_min = k_min_default, k_cap = 40,
-  sample_rate = 0.5
+  sample_rate = 1.0
 )
 
 cat("\n=== DIAGNÓSTICOS PRE-τ ===\n")
